@@ -68,5 +68,60 @@
         </div>
     </div>
 
+    <h3>6.3. 画面遷移図</h3>
+    <p>アプリケーション内における各画面の状態変化、および遷移のトリガーとなるユーザー操作・内部イベントのマッピング図です。</p>
+
+    <div class="transition-container">
+        <div class="diagram-title">【図3】 画面遷移・状態変更トリガーマップ</div>
+        <div class="trans-grid">
+            
+            <div class="trans-row justify-center">
+                <div class="trans-box widget">
+                    記録モード<br>(フローティング・ウィジェット)
+                </div>
+            </div>
+            
+            <div class="trans-row justify-center">
+                <div class="trans-arrow-vertical">
+                    <span class="trans-arrow-text">▲ 「新規マクロ記録開始」 押下 (メイン窓最小化 / ウィジェット化)</span>
+                    <span class="trans-arrow-text">▼ 「録画終了」 押下 (ウィジェット破棄 / メイン窓復帰)</span>
+                </div>
+            </div>
+
+            <div class="trans-row">
+                <div class="trans-box primary">
+                    ホーム /<br>マクロ管理画面
+                </div>
+                
+                <div class="trans-arrow-horizontal-double">
+                    <span class="trans-arrow-label">「編集」選択 ➔</span>
+                    <span class="trans-arrow-label">⇦ 「保存/閉じる」押下</span>
+                </div>
+                
+                <div class="trans-box success">
+                    解析・生成・編集画面<br>(2ペイン)
+                </div>
+            </div>
+
+            <div class="trans-row justify-around">
+                <div class="trans-arrow-vertical">
+                    <span class="trans-arrow-text">▼ 「実行」押下</span>
+                    <span class="trans-arrow-text">▲ 停止 / 終了</span>
+                </div>
+                <div class="trans-arrow-vertical">
+                    <span class="trans-arrow-text">▼ 「テスト実行」押下</span>
+                    <span class="trans-arrow-text">▲ 停止 / 修正戻り</span>
+                </div>
+            </div>
+
+            <div class="trans-row justify-center">
+                <div class="trans-box warning">
+                    実行・自己修復<br>モニター画面
+                </div>
+            </div>
+
+        </div>
+    </div>
+
 </body>
 </html>
