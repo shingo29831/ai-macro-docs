@@ -1,8 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
     <title>AIオートマクロ生成・自己修復システム 総合仕様書（完全版）</title>
     <style>
         @page {
@@ -471,7 +471,6 @@
     <p>無駄な固定待機を排除し、「安全性」と「最速実行」を両立するための機能要件です。</p>
 
     <div class="opt-safe-container">
-        <!-- 最適化カード -->
         <div class="opt-card tuning">
             <div class="opt-title tuning-title">⏱️ 実行の最適化 (Self-Tuning & Dynamic Wait)</div>
             <div class="formula-box">最大待機時間 = 記録された操作間隔 × (1 + バッファ比率)</div>
@@ -481,7 +480,6 @@
             </ul>
         </div>
 
-        <!-- 安全対策カード -->
         <div class="opt-card safety">
             <div class="opt-title safety-title">🛡️ 堅牢性と安全対策 (Safety & Fail-safes)</div>
             <ul>
