@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>最適化と安全対策 - AIオートマクロ仕様書</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <a href="index.html" class="nav-back">← トップページ（目次）に戻る</a>
+
+    <h2>4. 動的待機時間（最適化）と安全対策</h2>
+    <p>無駄な固定待機を排除し、「安全性」と「最速実行」を両立するための機能要件です。</p>
+
+    <div class="opt-safe-container">
+        <div class="opt-card tuning">
+            <div class="opt-title tuning-title">⏱️ 実行の最適化 (Self-Tuning & Dynamic Wait)</div>
+            <div class="formula-box">最大待機時間 = 記録された操作間隔 × (1 + バッファ比率)</div>
+            <ul>
+                <li><strong>タイムアウト限界の算出:</strong> ユーザーの実際の操作時間に対し、環境変数等で定義した割合（例：30%）をバッファとして加算し、PC負荷の揺らぎによる不要な自己修復の発動（誤検知）を防止します。</li>
+                <li><strong>即時ポーリング:</strong> 最大待機時間までただ待つのではなく、200ms間隔でImage Diff検証を実施。画面遷移が完了した瞬間に最速で次のステップへ進行します。</li>
+            </ul>
+        </div>
+
+        <div class="opt-card safety">
+            <div class="opt-title safety-title">🛡️ 堅牢性と安全対策 (Safety & Fail-safes)</div>
+            <ul>
+                <li><strong>グローバル・キルスイッチ:</strong> マクロ実行中に指定のショートカットキーを押下する、またはマウスを画面の四隅に移動させることで、OSレベルの割り込みによりプロセスを即座に強制終了します。</li>
+                <li><strong>Bounding Box制限:</strong> AIが再生成した座標であっても、対象アプリケーションのウィンドウ外（タスクバーやシステムトレイ等）への操作をドライバレベルでブロックします。</li>
+            </ul>
+        </div>
+    </div>
+
+</body>
+</html>

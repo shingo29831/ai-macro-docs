@@ -1,4 +1,4 @@
-/* @role: Manages all visual styling, layouts, printer settings (A4), and responsive behaviors for the specification document. */
+/* @role: Manages all visual styling, layouts, printer settings, responsive behaviors, and navigation links for the specification documents. */
 
 @page {
     size: A4;
@@ -16,7 +16,6 @@
     box-sizing: border-box;
 }
 
-/* 外側の背景色（PC表示時に枠外との境界を分かりやすくする） */
 html {
     background-color: #f8fafc;
 }
@@ -27,13 +26,11 @@ body {
     line-height: 1.5;
     color: #1e293b;
     background-color: #ffffff;
-    /* モバイル向けデフォルト設定 */
     margin: 0 auto;
     padding: 15px;
     max-width: 100%;
 }
 
-/* PC向けのレスポンシブ設定 */
 @media (min-width: 768px) {
     body {
         max-width: 800px;
@@ -47,13 +44,11 @@ body {
 .cover {
     background-color: #0f172a;
     color: #ffffff;
-    /* bodyのpaddingを相殺して端まで広げる（モバイル用） */
     margin: -15px -15px 15px -15px;
     padding: 25px 20px;
     text-align: center;
 }
 
-/* PC向けのcoverマージン調整 */
 @media (min-width: 768px) {
     .cover {
         margin: -40px -40px 20px -40px;
@@ -119,6 +114,58 @@ li {
     margin: 0 0 6px 0;
     color: #1d4ed8;
     font-size: 10pt;
+}
+
+/* --- Navigation & Table of Contents --- */
+.nav-back {
+    display: inline-block;
+    margin-bottom: 15px;
+    color: #0369a1;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 9.5pt;
+}
+
+.nav-back:hover {
+    text-decoration: underline;
+    color: #0284c7;
+}
+
+.toc-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 15px;
+}
+
+.toc-list li {
+    margin-bottom: 12px;
+}
+
+.toc-list a {
+    display: flex;
+    align-items: center;
+    padding: 14px 18px;
+    background-color: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    color: #0f172a;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 10.5pt;
+    transition: all 0.2s ease;
+}
+
+.toc-list a:hover {
+    background-color: #e2e8f0;
+    border-color: #94a3b8;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.toc-list a::after {
+    content: '➔';
+    margin-left: auto;
+    color: #64748b;
 }
 
 /* --- User Flow Diagram CSS --- */

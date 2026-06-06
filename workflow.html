@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>運用フロー・システム構成 - AIオートマクロ仕様書</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <a href="index.html" class="nav-back">← トップページ（目次）に戻る</a>
+
+    <h2>2. ユーザー運用フロー</h2>
+    <p>ユーザーがシステムを利用して自動化を実現する際のエンドツーエンドのフローです。</p>
+    <div class="user-flow-container">
+        <div class="uf-step">
+            <div class="uf-phase record">Phase 1<br>記録</div>
+            <div class="uf-content">
+                <div class="uf-title">ユーザー操作の学習 (Data Collection)</div>
+                <div class="uf-desc">「解析モード」を開始し、通常通り業務操作を実施。アクション（クリック・キー入力）、スクリーンショット、座標、操作間隔がバックグラウンドで記録されます。</div>
+            </div>
+        </div>
+        <div class="uf-arrow">▼</div>
+        <div class="uf-step">
+            <div class="uf-phase generate">Phase 2<br>解析・生成</div>
+            <div class="uf-content">
+                <div class="uf-title">マクロコードのAI生成 (Intelligence)</div>
+                <div class="uf-desc">YOLO/OCRにより画面が構造化され、作業単位のビジュアルワークフローが提示されます。ユーザーが確認後、「生成」を実行するとローカル実行用コードが出力されます。</div>
+            </div>
+        </div>
+        <div class="uf-arrow">▼</div>
+        <div class="uf-step">
+            <div class="uf-phase execute">Phase 3<br>実行・最速化</div>
+            <div class="uf-content">
+                <div class="uf-title">自動追従と最速実行 (Execution)</div>
+                <div class="uf-desc">生成したマクロを実行。記録時の操作スピードに縛られず、200ms周期の即時ポーリングにより、画面遷移完了後、最速で次のステップへ自動進行します。</div>
+            </div>
+        </div>
+        <div class="uf-arrow">▼</div>
+        <div class="uf-step">
+            <div class="uf-phase heal">Phase 4<br>検証・修復</div>
+            <div class="uf-content">
+                <div class="uf-title">異常時の自律対応 (Recovery)</div>
+                <div class="uf-desc">タイムアウト発生時、自動で修復フェーズへ移行します。座標のズレは自動補正され、UI変更時はAIがコードを動的再生成して処理を継続します。</div>
+            </div>
+        </div>
+    </div>
+
+    <h2>3. システム構成と自己修復フロー（アーキテクチャ図）</h2>
+    <div class="diagram-container">
+        <div class="diagram-title">【図1】 システムモジュール連携フロー</div>
+        <div class="arch-flow">
+            <div class="arch-box">
+                A. データ収集<br>
+                <div class="arch-desc" style="text-align:left; margin-top:4px;">・Event Logger<br>・Screen Capturer<br>・Context Manager</div>
+            </div>
+            <div class="arch-arrow">➔</div>
+            <div class="arch-box">
+                B. 画像解析<br>
+                <div class="arch-desc" style="text-align:left; margin-top:4px;">・YOLO Engine<br>・OCR Engine<br>・座標マッピング</div>
+            </div>
+            <div class="arch-arrow">➔</div>
+            <div class="arch-box">
+                C. 生成コア<br>
+                <div class="arch-desc" style="text-align:left; margin-top:4px;">・Log Integrator<br>・Code Generator</div>
+            </div>
+            <div class="arch-arrow">➔</div>
+            <div class="arch-box">
+                D. 実行・検証<br>
+                <div class="arch-desc" style="text-align:left; margin-top:4px;">・ローカル実行<br>・多段階検証<br>・自律修復</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="diagram-container">
+        <div class="diagram-title">【図2】 4段階・自己修復意思決定ツリー</div>
+        <div class="val-tree">
+            <div class="val-node">マクロ実行 ＆ 待機（ポーリング）</div>
+            <div class="val-arrow-down">⬇</div>
+            <div class="val-stage-row">
+                <div class="val-stage-main">Stage 1: 完全一致検証 (Image Diff)</div>
+                <div class="val-stage-arrow">➔</div>
+                <div class="val-stage-result">OK: 次のStepへ</div>
+            </div>
+            <div class="val-arrow-down">⬇</div>
+            <div class="val-arrow-text">NG (画像差分が閾値超過)</div>
+            <div class="val-stage-row">
+                <div class="val-stage-main">Stage 2: YOLO/OCR 軽微ズレ補正</div>
+                <div class="val-stage-arrow">➔</div>
+                <div class="val-stage-result">OK: 座標上書き & 次へ</div>
+            </div>
+            <div class="val-arrow-down">⬇</div>
+            <div class="val-arrow-text">NG (対象UI要素が見つからない)</div>
+            <div class="val-stage-row">
+                <div class="val-stage-main">Stage 3: AI構成変化 動的再生成</div>
+                <div class="val-stage-arrow">➔</div>
+                <div class="val-stage-result" style="background:#eff6ff; border-color:#bfdbfe; color:#1d4ed8;">OK: コード再生成 & 再試行</div>
+            </div>
+            <div class="val-arrow-down">⬇</div>
+            <div class="val-arrow-text">NG (目的の画面・コンテキストにいない)</div>
+            <div class="val-stage-row">
+                <div class="val-stage-main val-fail">Stage 4: ワークフロー完全逸脱判定</div>
+                <div class="val-stage-arrow" style="color:#ef4444;">➔</div>
+                <div class="val-stage-result" style="background:#fef2f2; border-color:#fecaca; color:#b91c1c;">強制終了 (作り直し推奨)</div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
