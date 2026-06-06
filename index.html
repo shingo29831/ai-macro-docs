@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AIオートマクロ生成・自己修復システム 総合仕様書（完全版）</title>
     <style>
         @page {
             size: A4;
             margin: 15mm 15mm;
-            background-color: #f8fafc;
+            background-color: #ffffff;
             @bottom-right {
                 content: counter(page);
                 font-size: 9pt;
@@ -21,21 +22,49 @@
             box-sizing: border-box;
         }
 
+        /* 外側の背景色（PC表示時に枠外との境界を分かりやすくする） */
+        html {
+            background-color: #f8fafc;
+        }
+
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
             font-size: 9pt;
             line-height: 1.5;
             color: #1e293b;
-            margin: 0;
-            padding: 0;
+            background-color: #ffffff;
+            /* モバイル向けデフォルト設定 */
+            margin: 0 auto;
+            padding: 15px;
+            max-width: 100%;
+        }
+
+        /* PC向けのレスポンシブ設定 */
+        @media (min-width: 768px) {
+            body {
+                max-width: 800px;
+                margin: 30px auto;
+                padding: 40px;
+                border-radius: 8px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03);
+            }
         }
 
         .cover {
             background-color: #0f172a;
             color: #ffffff;
-            margin: -15mm -15mm 15px -15mm;
+            /* bodyのpaddingを相殺して端まで広げる（モバイル用） */
+            margin: -15px -15px 15px -15px;
             padding: 25px 20px;
             text-align: center;
+        }
+
+        /* PC向けのcoverマージン調整 */
+        @media (min-width: 768px) {
+            .cover {
+                margin: -40px -40px 20px -40px;
+                border-radius: 8px 8px 0 0;
+            }
         }
 
         .cover h1 {
