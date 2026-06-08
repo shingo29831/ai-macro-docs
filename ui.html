@@ -20,90 +20,57 @@
 
     <h2>6. デスクトップアプリ画面構成・UI要件</h2>
     <p>
-        本システムはデスクトップアプリケーション（Python環境等を想定）として、Viewとビジネスロジックを明確に分離可能なマルチペイン構造を採用します。各画面の構成およびコンポーネントの要件は以下の通りです。
+        本システムは、ユーザーの学習コストと操作手順を最小限に抑えるため、複雑なマルチペインや複数画面への遷移を廃止し、単一の「ホーム画面」のみで全ての管理・実行が完結するシンプルな1画面構造を採用します。
     </p>
 
     <h3>6.1. 全体レイアウト（ベース構造）</h3>
-    <p>アプリケーションウィンドウは、ユーザーの視線移動を最適化し、操作の一貫性を保つために3つの主要領域で構成します。</p>
+    <p>アプリケーションウィンドウは、迷いのない操作性を実現するために上下のシンプルなコンポーネント構成とします。</p>
     <ul>
-        <li><strong>グローバルヘッダー (最上部):</strong> 現在のシステムステータス（待機中/記録中/実行中）を色分けしたインジケーターで常時表示。OSレベルでの強制割り込みをかける「緊急停止（キルスイッチ）」のショートカットキー（<code>Ctrl + \</code>）の案内を右端に配置。</li>
-        <li><strong>サイドバー (左側):</strong> 画面遷移を管理するメニュー項目（ホーム、記録、マクロ一覧、ログ/分析）を配置するナビゲーション領域。</li>
-        <li><strong>メインコンテンツ領域 (中央〜右側):</strong> サイドバーで選択されたメニューに対応する各画面コンポーネントを描画するメインペイン。</li>
+        <li><strong>グローバルヘッダー (最上部):</strong> 現在のシステムステータス（待機中/記録中/実行中）を色分けしたインジケーターで常時表示。OSレベルでの強制割り込みをかける緊急停止ショートカットキー（<code>Ctrl + \</code>）の案内を右端に配置。</li>
+        <li><strong>メインコンテンツ領域 (中央〜下部):</strong> 「新規マクロ追加」のアクションと、作成済みの「マクロ一覧」を同一画面内に配置したプライマリペイン。</li>
     </ul>
 
-    <h3>6.2. 主要画面の要件</h3>
+    <h3>6.2. 主要画面・要素の要件</h3>
 
     <div class="opt-safe-container">
         <div class="opt-card tuning" style="border-left-color: #0284c7;">
-            <div class="opt-title tuning-title" style="color: #0284c7;">📁 ホーム / マクロ管理画面</div>
+            <div class="opt-title tuning-title" style="color: #0284c7;">🏠 ホーム画面（唯一の管理画面）</div>
             <ul>
-                <li><strong>新規マクロ生成導線:</strong> ユーザーが即座に記録を開始できるよう、「新規マクロ記録開始」のプライマリアクションボタンを最上部に強調配置。</li>
-                <li><strong>マクロリストビュー:</strong> 過去に作成・生成されたマクロを一覧表示。各項目には、対応する「実行（再生）」「ビジュアル編集」「ログ解析」への個別ショートカットボタンを実装。</li>
-                <li><strong>簡易ダッシュボード:</strong> 過去の実行成功率、エラーによる自己修復の発動回数など、システムの健全性を表す統計サマリーを出力。</li>
+                <li><strong>マクロ新規追加ボタン:</strong> ユーザーが即座に自動化を開始できるよう、最上部に「新規マクロ記録開始」ボタンを強調配置。</li>
+                <li><strong>マクロリストビュー（一覧）:</strong> 過去に作成されたマクロをカードまたは行形式で一覧表示。各項目には、最小限の操作として「実行（再生）」ボタンと「削除」ボタンのみを配置。</li>
+                <li><strong>簡易ステータス表示:</strong> 各マクロの最終実行日時や成否、自己修復の自動発動回数をリスト内にバッジとして静かに付記。</li>
             </ul>
         </div>
 
         <div class="opt-card safety" style="border-left-color: #4f46e5;">
             <div class="opt-title safety-title" style="color: #4f46e5;">🎥 記録モード（フローティング・ウィジェット）</div>
             <ul>
-                <li><strong>ウィンドウコントロール:</strong> 「新規マクロ記録開始」押下時、メインウィンドウを自動的に最小化。ターゲットとなる業務アプリケーションの操作を妨げないよう、画面の隅に超小型のウィジェットとして常時最前面表示（TopMost属性）に移行。</li>
-                <li><strong>操作インターフェース:</strong> 「録画停止」「一時停止」「録画終了（解析へ進む）」のミニマルなコントロールボタン群。</li>
-                <li><strong>リアルタイムフィードバック:</strong> バックグラウンドでEvent Loggerが捕捉している最新のアクション（例: <code>Click [1250, 300]</code>）を1行のストリーミングテキストとして描画し、正常にフックされているかを可視化。</li>
-            </ul>
-        </div>
-
-        <div class="opt-card tuning" style="border-left-color: #059669;">
-            <div class="opt-title tuning-title" style="color: #059669;">🔍 解析・生成・編集画面（2ペイン構成）</div>
-            <ul>
-                <li><strong>左ペイン（ビジュアルワークフロータイムライン）:</strong> 記録されたスクリーンショットと、YOLO/OCRエンジンが認識したUIのバウンディングボックス（境界枠）を重ねて描画。操作ステップが縦方向に連なるタイムライン形式を採用。</li>
-                <li><strong>右ペイン（プロパティ＆コードエディタ）:</strong> 
-                    <ul>
-                        <li>左ペインで選択されたステップのメタデータ（座標、認識テキスト、推定UI種別）を表示するプロパティパネル。</li>
-                        <li>AIコアによって自動生成された、ローカル環境用のマクロ実行コードを表示するプレビュー・編集エディタ（手動での微調整を許容）。</li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
-
-        <div class="opt-card safety" style="border-left-color: #d97706;">
-            <div class="opt-title safety-title" style="color: #d97706;">🚨 実行・自己修復モニター画面</div>
-            <ul>
-                <li><strong>フェーズインジケーター:</strong> 現在の処理フェーズ（ポーリング待機中、実行中、タイムアウト検出、修復フェーズ作動中）を色分けし、進捗バーとともに大きく視覚化。</li>
-                <li><strong>Image Diff プレビュー:</strong> 記録時にEvent Loggerが保存した「基準画像（期待値）」と、Screen Capturerがリアルタイムに取得している「現在の画面（実績値）」を2画面で並列比較。自己修復（座標補正や動的コード生成）が走った場合、AIが再探索・決定したターゲット要素を画面上でハイライト。</li>
-                <li><strong>ライブコンソールパネル:</strong> 下部にリアルタイムの内部ログ（ドライバ入出力、API通信状況、エラー詳細）をスクロール出力。</li>
+                <li><strong>ウィンドウコントロール:</strong> ホーム画面で「新規マクロ記録開始」を押下した際、メインウィンドウを自動的に最小化。操作の邪魔にならないよう、画面隅に超小型ウィジェットとして常時最前面表示。</li>
+                <li><strong>操作インターフェース:</strong> 「録画停止」「一時停止」「録画終了」のミニマルなボタン群のみ。</li>
+                <li><strong>自動帰還・自動生成フロー:</strong> 「録画終了」を押下すると、手動での解析・編集画面を一切挟むことなく、AIコアがバックグラウンドでマクロコードを自動生成。ウィジェットが閉じると同時にメインウィンドウが自動で元のサイズに復元され、生成されたマクロがホーム画面の一覧に即座に追加されます。</li>
             </ul>
         </div>
     </div>
 
     <h3>6.3. 画面遷移図</h3>
-    <p>アプリケーション内における各画面の状態変化、および遷移のトリガーとなるユーザー操作・内部イベントのマッピング図です。（※描画にはインターネット接続が必要です）</p>
+    <p>アプリケーションにおける状態変化のマップです。画面の移動はホーム画面と記録ウィジェット間の往復のみに限定されます。</p>
 
     <div class="diagram-container">
         <div class="diagram-title">【図3】 画面遷移・状態変更トリガーマップ</div>
         <div class="mermaid" style="display: flex; justify-content: center;">
-            graph TD
-                Home["🏠 ホーム / マクロ管理画面"]
-                Record(["🎥 記録モード (ウィジェット)"])
-                Edit["🔍 解析・生成・編集画面 (2ペイン)"]
-                Monitor{{"🚨 実行・自己修復モニター画面"}}
+            graph LR
+                Home["🏠 ホーム画面<br>(マクロ一覧 / 新規追加ボタン)"]
+                Record(["🎥 記録モード<br>(ミニマルウィジェット)"])
 
                 classDef primary fill:#f0f9ff,stroke:#0284c7,stroke-width:2px,color:#0f172a,font-weight:bold
                 classDef widget fill:#f5f3ff,stroke:#4f46e5,stroke-width:2px,color:#0f172a,font-weight:bold
-                classDef success fill:#f0fdf4,stroke:#059669,stroke-width:2px,color:#0f172a,font-weight:bold
-                classDef warning fill:#fffbeb,stroke:#d97706,stroke-width:2px,color:#0f172a,font-weight:bold
 
                 class Home primary
                 class Record widget
-                class Edit success
-                class Monitor warning
 
-                Home -- "新規マクロ記録開始\n(メイン窓最小化)" --> Record
-                Record -- "録画終了\n(解析へ進む)" --> Edit
-                Home -- "「編集」選択" --> Edit
-                Edit -- "「保存/閉じる」" --> Home
-                Home -- "「実行」押下" --> Monitor
-                Edit -- "「テスト実行」" --> Monitor
-                Monitor -. "停止/終了\n(元の画面へ戻る)" .-> Home
+                Home -- "「新規マクロ記録開始」<br>(メイン窓最小化)" --> Record
+                Record -- "「録画終了」<br>(バックグラウンド自動生成 / 窓復元)" --> Home
+                Home -- "「実行」押下<br>(ヘッダーのみ実行中ステータスへ)" --> Home
         </div>
     </div>
 
