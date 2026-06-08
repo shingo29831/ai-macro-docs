@@ -174,7 +174,7 @@
 }</code></pre>
 
     <h3>5.3. 統合データ構造定義</h3>
-    <p>各自律機能やAI生成コアが「コンテキスト理解」および「相対座標によるウィンドウ移動耐性」を確保するため、上記の生データをタイムスタンプや座標情報を基準に結合・構造化したデータモデルです。</p>
+    <p>自律機能やAI生成コアが「コンテキスト理解」を確保するため、生データをウィンドウ基準の階層型ツリー（DOMライク）に統合したデータモデルです。</p>
     <table class="data-table">
         <thead>
             <tr>
@@ -190,64 +190,109 @@
                 <td>統合ログの一意なID (例: "step_001")</td>
             </tr>
             <tr>
-                <td class="prop-col">action.type</td>
-                <td class="type-col">enum</td>
-                <td>操作種別 ("click", "double_click", "keypress")</td>
-            </tr>
-            <tr>
-                <td class="prop-col">action.coordinates</td>
-                <td class="type-col">object</td>
-                <td>画面全体の絶対座標 {x, y}</td>
-            </tr>
-            <tr>
-                <td class="prop-col">action.uiImageBase64</td>
-                <td class="type-col">string</td>
-                <td>クリックしたUI（カーソル周辺アイコン）のBase64画像文字列。修復時のテンプレートマッチングに使用</td>
-            </tr>
-            <tr>
-                <td class="prop-col">action.keyContent</td>
-                <td class="type-col">string</td>
-                <td>入力されたキーの内容 (例: "Enter", "Hello") ※keypress時のみ</td>
-            </tr>
-            <tr>
                 <td class="prop-col">timestamp</td>
                 <td class="type-col">number</td>
-                <td>アクション取得時のUnixタイムスタンプ。次アクションまでの待機時間算出に使用</td>
+                <td>アクション実行時のUnixタイムスタンプ</td>
             </tr>
             <tr>
-                <td class="prop-col">context.screenshotBeforePath</td>
+                <td class="prop-col">screenshotBeforePath / AfterPath</td>
                 <td class="type-col">string</td>
-                <td>操作前の全体画面スクリーンショットのローカルパス</td>
+                <td>操作前・操作後の全体画面スクリーンショットのローカルパス</td>
             </tr>
             <tr>
-                <td class="prop-col">context.screenshotAfterPath</td>
+                <td class="prop-col">window.name</td>
                 <td class="type-col">string</td>
-                <td>操作後の全体画面スクリーンショットのローカルパス</td>
+                <td>操作対象となったアクティブウィンドウの名前（タイトル）</td>
             </tr>
             <tr>
-                <td class="prop-col">context.activeWindowTitle</td>
-                <td class="type-col">string</td>
-                <td>操作対象となったアクティブウィンドウのタイトル名</td>
-            </tr>
-            <tr>
-                <td class="prop-col">context.relativeCoordinates</td>
+                <td class="prop-col">window.size</td>
                 <td class="type-col">object</td>
-                <td>アクティブウィンドウの左上を原点(0,0)とした相対座標 {x, y}。ウィンドウ移動時の追従に使用</td>
+                <td>ウィンドウのサイズ {width, height}</td>
             </tr>
             <tr>
-                <td class="prop-col">visionAnalysis.uiType</td>
-                <td class="type-col">string</td>
-                <td>YOLO等が判定したUIの種類 ("button", "link", "input" 等)。AI動的再生成の基準に使用</td>
-            </tr>
-            <tr>
-                <td class="prop-col">visionAnalysis.uiDetails.boundingBox</td>
+                <td class="prop-col">window.coordinates</td>
                 <td class="type-col">object</td>
-                <td>UI要素の境界ボックス {x, y, width, height}</td>
+                <td>ウィンドウの画面上の絶対座標 {x, y}</td>
             </tr>
             <tr>
-                <td class="prop-col">visionAnalysis.uiDetails.text</td>
+                <td class="prop-col">window.UIs</td>
+                <td class="type-col">array</td>
+                <td>対象ウィンドウ内で認識され、操作に関与したUI要素の配列</td>
+            </tr>
+            <tr>
+                <td class="prop-col">window.UIs[].type</td>
                 <td class="type-col">string</td>
-                <td>OCRエンジンによって読み取られたUI内のテキスト ("ログイン", "保存" 等)</td>
+                <td>UIの種類（"button", "input" 等）</td>
+            </tr>
+            <tr>
+                <td class="prop-col">window.UIs[].relativeBoundingBox</td>
+                <td class="type-col">object</td>
+                <td>対象ウィンドウの左上を原点(0,0)とした相対座標とサイズ {x, y, width, height}</td>
+            </tr>
+            <tr>
+                <td class="prop-col">window.UIs[].confidence</td>
+                <td class="type-col">number</td>
+                <td>AIによるUI認識精度 (0.0〜1.0)</td>
+            </tr>
+            <tr>
+                <td class="prop-col">window.UIs[].action</td>
+                <td class="type-col">object</td>
+                <td>当該UIに対して行われた入力操作の詳細</td>
+            </tr>
+            <tr>
+                <td class="prop-col">window.UIs[].action.inputType</td>
+                <td class="type-col">string</td>
+                <td>入力タイプ（"click_down", "key_down" 等）</td>
+            </tr>
+            <tr>
+                <td class="prop-col">window.UIs[].action.inputValue</td>
+                <td class="type-col">string</td>
+                <td>入力内容（"left_click", "Enter" 等）</td>
+            </tr>
+            <tr>
+                <td class="prop-col">window.UIs[].action.cursorRelativeCoordinates</td>
+                <td class="type-col">object</td>
+                <td>対象ウィンドウ内でのカーソル相対座標 {x, y}</td>
+            </tr>
+            <tr>
+                <td class="prop-col">window.UIs[].action.diffRatio</td>
+                <td class="type-col">number</td>
+                <td>操作による前画面変化率（待機判定に使用）</td>
+            </tr>
+            <tr>
+                <td class="prop-col">window.UIs[].action.croppedImagePath</td>
+                <td class="type-col">string</td>
+                <td>操作周辺の切り抜き画像パス</td>
+            </tr>
+            <tr>
+                <td class="prop-col">window.UIs[].context</td>
+                <td class="type-col">array</td>
+                <td>UI要素を補足する周辺情報（テキストやアイコン等）の配列</td>
+            </tr>
+            <tr>
+                <td class="prop-col">window.UIs[].context[].type</td>
+                <td class="type-col">string</td>
+                <td>コンテキストの種類（"text", "icon" 等）</td>
+            </tr>
+            <tr>
+                <td class="prop-col">window.UIs[].context[].content</td>
+                <td class="type-col">string</td>
+                <td>読み取られたテキストや記号の種類名</td>
+            </tr>
+            <tr>
+                <td class="prop-col">window.UIs[].context[].relativeBoundingBox</td>
+                <td class="type-col">object</td>
+                <td>対象ウィンドウ内での相対座標とサイズ {x, y, width, height}</td>
+            </tr>
+            <tr>
+                <td class="prop-col">window.UIs[].context[].confidence</td>
+                <td class="type-col">number</td>
+                <td>認識精度 (0.0〜1.0)</td>
+            </tr>
+            <tr>
+                <td class="prop-col">window.UIs[].context[].parentRelevance</td>
+                <td class="type-col">number</td>
+                <td>親要素（対象UI）との関連度合い（距離や意味合いから算出）</td>
             </tr>
         </tbody>
     </table>
@@ -255,27 +300,43 @@
     <h3>5.4. 統合データ JSONフォーマット例</h3>
 <pre><code>{
   "id": "step_012",
-  "rawLog": {
-    "action": {
-      "type": "click",
-      "coordinates": { "x": 1250, "y": 300 },
-      "uiImageBase64": "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0...",
-      "keyContent": null
-    },
-    "timestamp": 1717654800123,
-    "context": {
-      "screenshotBeforePath": "/logs/session_1/step_012_before.png",
-      "screenshotAfterPath": "/logs/session_1/step_012_after.png",
-      "activeWindowTitle": "社内システム - Google Chrome",
-      "relativeCoordinates": { "x": 450, "y": 150 }
-    }
-  },
-  "visionAnalysis": {
-    "uiType": "button",
-    "uiDetails": {
-      "boundingBox": { "x": 1220, "y": 280, "width": 60, "height": 40 },
-      "text": "保存する"
-    }
+  "timestamp": 1717654800123,
+  "screenshotBeforePath": "/logs/session_1/step_012_before.png",
+  "screenshotAfterPath": "/logs/session_1/step_012_after.png",
+  "window": {
+    "name": "社内システム - Google Chrome",
+    "size": { "width": 1920, "height": 1080 },
+    "coordinates": { "x": 0, "y": 0 },
+    "UIs": [
+      {
+        "type": "button",
+        "relativeBoundingBox": { "x": 1220, "y": 280, "width": 60, "height": 40 },
+        "confidence": 0.95,
+        "action": {
+          "inputType": "click_down",
+          "inputValue": "left_click",
+          "cursorRelativeCoordinates": { "x": 1250, "y": 300 },
+          "diffRatio": 0.12,
+          "croppedImagePath": "/logs/session_1/step_012_crop.png"
+        },
+        "context": [
+          {
+            "type": "text",
+            "content": "保存する",
+            "relativeBoundingBox": { "x": 1225, "y": 285, "width": 50, "height": 30 },
+            "confidence": 0.98,
+            "parentRelevance": 0.99
+          },
+          {
+            "type": "icon",
+            "content": "save_icon",
+            "relativeBoundingBox": { "x": 1210, "y": 285, "width": 10, "height": 10 },
+            "confidence": 0.90,
+            "parentRelevance": 0.85
+          }
+        ]
+      }
+    ]
   }
 }</code></pre>
 
