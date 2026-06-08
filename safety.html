@@ -27,7 +27,13 @@
         <div class="opt-card safety">
             <div class="opt-title safety-title">🛡️ 堅牢性と安全対策 (Safety & Fail-safes)</div>
             <ul>
-                <li><strong>グローバル・キルスイッチ:</strong> マクロ実行中にショートカットキー（<code>Ctrl + \</code>）を押下することで、OSレベルの割り込みによりプロセスを即座に強制終了します。</li>
+                <li><strong>ワンキー状態制御（Ctrl + \）:</strong> 操作の迷いをなくし、誤動作時や異常発生時のリスクを最小化するため、システムの主要な状態遷移（記録開始、記録終了、緊急停止）をすべて単一のショートカットキー（<code>Ctrl + \</code>）に統合します。
+                    <ul>
+                        <li><strong>待機中（ホーム画面）：</strong> 新規マクロの記録を即座に開始。</li>
+                        <li><strong>記録中（ウィジェット）：</strong> 記録をその場で安全に終了し、バックグラウンド自動生成フェーズへ移行。</li>
+                        <li><strong>マクロ実行中：</strong> OSレベルの最優先割り込みにより、実行プロセスを即座に強制終了（グローバル・キルスイッチ）。</li>
+                    </ul>
+                </li>
                 <li><strong>Bounding Box制限:</strong> AIが再生成した座標であっても、対象アプリケーションのウィンドウ外（タスクバーやシステムトレイ等）への操作をドライバレベルでブロックします。</li>
             </ul>
         </div>

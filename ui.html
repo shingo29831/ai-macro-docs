@@ -24,9 +24,9 @@
     </p>
 
     <h3>6.1. 全体レイアウト（ベース構造）</h3>
-    <p>アプリケーションウィンドウは、迷いのない操作性を実現するために上下のシンプルなコンポーネント構成とします。</p>
+    <p>アプリケーションウィンドウは、迷いのない操作性を実現するために上下のシンプルなコンポーネ components 構成とします。</p>
     <ul>
-        <li><strong>グローバルヘッダー (最上部):</strong> 現在のシステムステータス（待機中/記録中/実行中）を色分けしたインジケーターで常時表示。OSレベルでの強制割り込みをかける緊急停止ショートカットキー（<code>Ctrl + \</code>）の案内を右端に配置。</li>
+        <li><strong>グローバルヘッダー (最上部):</strong> 現在のシステムステータス（待機中/記録中/実行中）を色分けしたインジケーターで常時表示。すべての状態において即座のコントロールを可能にする共通ショートカットキー（<code>Ctrl + \</code>）の案内を右端に配置。</li>
         <li><strong>メインコンテンツ領域 (中央〜下部):</strong> 「新規マクロ追加」のアクションと、作成済みの「マクロ一覧」を同一画面内に配置したプライマリペイン。</li>
     </ul>
 
@@ -36,7 +36,7 @@
         <div class="opt-card tuning" style="border-left-color: #0284c7;">
             <div class="opt-title tuning-title" style="color: #0284c7;">🏠 ホーム画面（唯一の管理画面）</div>
             <ul>
-                <li><strong>マクロ新規追加ボタン:</strong> ユーザーが即座に自動化を開始できるよう、最上部に「新規マクロ記録開始」ボタンを強調配置。</li>
+                <li><strong>マクロ新規追加ボタン:</strong> ユーザーが即座に自動化を開始できるよう、最上部に「新規マクロ記録開始」ボタンを強調配置（マウス操作のほか、ホーム画面上で<code>Ctrl + \</code>を押下することでも開始可能）。</li>
                 <li><strong>マクロリストビュー（一覧）:</strong> 過去に作成されたマクロをカードまたは行形式で一覧表示。各項目には、最小限の操作として「実行（再生）」ボタンと「削除」ボタンのみを配置。</li>
                 <li><strong>簡易ステータス表示:</strong> 各マクロの最終実行日時や成否、自己修復の自動発動回数をリスト内にバッジとして静かに付記。</li>
             </ul>
@@ -45,32 +45,36 @@
         <div class="opt-card safety" style="border-left-color: #4f46e5;">
             <div class="opt-title safety-title" style="color: #4f46e5;">🎥 記録モード（フローティング・ウィジェット）</div>
             <ul>
-                <li><strong>ウィンドウコントロール:</strong> ホーム画面で「新規マクロ記録開始」を押下した際、メインウィンドウを自動的に最小化。操作の邪魔にならないよう、画面隅に超小型ウィジェットとして常時最前面表示。</li>
-                <li><strong>操作インターフェース:</strong> 「録画停止」「一時停止」「録画終了」のミニマルなボタン群のみ。</li>
-                <li><strong>自動帰還・自動生成フロー:</strong> 「録画終了」を押下すると、手動での解析・編集画面を一切挟むことなく、AIコアがバックグラウンドでマクロコードを自動生成。ウィジェットが閉じると同時にメインウィンドウが自動で元のサイズに復元され、生成されたマクロがホーム画面の一覧に即座に追加されます。</li>
+                <li><strong>ウィンドウコントロール:</strong> ホーム画面で記録が開始された際、メインウィンドウを自動的に最小化。操作の邪魔にならないよう、画面隅に超小型ウィジェットとして常時最前面表示。</li>
+                <li><strong>操作インターフェース:</strong> 「録画停止」「一時停止」などのミニマルなボタンに加え、共通ショートカットキー（<code>Ctrl + \</code>）による即時録画終了に対応。</li>
+                <li><strong>自動帰還・自動生成フロー:</strong> 記録中に<code>Ctrl + \</code>を押下すると、手動での編集画面を挟むことなく、AIコアがバックグラウンドでマクロコードを自動生成。ウィジェットが閉じると同時にメインウィンドウが自動で元のサイズに復元され、生成されたマクロがホーム画面の一覧に即座に追加されます。</li>
             </ul>
         </div>
     </div>
 
     <h3>6.3. 画面遷移図</h3>
-    <p>アプリケーションにおける状態変化のマップです。画面の移動はホーム画面と記録ウィジェット間の往復のみに限定されます。</p>
+    <p>アプリケーションにおける状態変化のマップです。共通ショートカットキー（<code>Ctrl + \</code>）が、現在の状態に応じて異なる役割（開始・終了・緊急停止）へ自律的にマッピングされます。</p>
 
     <div class="diagram-container">
-        <div class="diagram-title">【図3】 画面遷移・状態変更トリガーマップ</div>
+        <div class="diagram-title">【図3】 状態変更・共通ショートカットキーマッピング図</div>
         <div class="mermaid" style="display: flex; justify-content: center;">
-            graph LR
-                Home["🏠 ホーム画面<br>(マクロ一覧 / 新規追加ボタン)"]
+            graph TD
+                Home["🏠 ホーム画面<br>(待機中ステータス)"]
                 Record(["🎥 記録モード<br>(ミニマルウィジェット)"])
+
+                Home -- "Ctrl + \ (記録開始)<br>メイン窓最小化" --> Record
+                Record -- "Ctrl + \ (記録終了)<br>自動生成 / メイン窓復元" --> Home
+                Home -- "マクロの「実行」ボタン押下<br>ヘッダーが実行中ステータスへ" --> Running["🚨 マクロ実行中<br>(バックグラウンド動作)"]
+                Running -- "Ctrl + \ (緊急停止キルスイッチ)<br>プロセス強制終了 / 待機中へ" --> Home
+                Running -. "正常終了<br>待機中へ自動復帰" .-> Home
 
                 classDef primary fill:#f0f9ff,stroke:#0284c7,stroke-width:2px,color:#0f172a,font-weight:bold
                 classDef widget fill:#f5f3ff,stroke:#4f46e5,stroke-width:2px,color:#0f172a,font-weight:bold
+                classDef running fill:#fef2f2,stroke:#ef4444,stroke-width:2px,color:#0f172a,font-weight:bold
 
                 class Home primary
                 class Record widget
-
-                Home -- "「新規マクロ記録開始」<br>(メイン窓最小化)" --> Record
-                Record -- "「録画終了」<br>(バックグラウンド自動生成 / 窓復元)" --> Home
-                Home -- "「実行」押下<br>(ヘッダーのみ実行中ステータスへ)" --> Home
+                class Running running
         </div>
     </div>
 
