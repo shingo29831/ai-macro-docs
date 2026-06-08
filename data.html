@@ -340,5 +340,133 @@
   }
 }</code></pre>
 
+    <h3>5.5. ワークフローデータ構造定義</h3>
+    <p>統合ログから抽出・生成され、実行エンジンへと引き渡されるマクロシナリオの構造定義です。</p>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th class="prop-col">プロパティ (階層)</th>
+                <th class="type-col">型</th>
+                <th>説明・格納される値</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="prop-col">workflow_ID</td>
+                <td class="type-col">string</td>
+                <td>ワークフロー（マクロ）を一意に識別するID</td>
+            </tr>
+            <tr>
+                <td class="prop-col">target_ID</td>
+                <td class="type-col">string</td>
+                <td>操作対象となる主要なアプリケーションの識別子ID</td>
+            </tr>
+            <tr>
+                <td class="prop-col">events</td>
+                <td class="type-col">array</td>
+                <td>ワークフローを構成する一連の操作イベントの配列</td>
+            </tr>
+            <tr>
+                <td class="prop-col">events[].event_id</td>
+                <td class="type-col">string</td>
+                <td>各操作イベントの一意なID</td>
+            </tr>
+            <tr>
+                <td class="prop-col">events[].timestamp</td>
+                <td class="type-col">number</td>
+                <td>イベントが検出または生成されたUnixタイムスタンプ</td>
+            </tr>
+            <tr>
+                <td class="prop-col">events[].action</td>
+                <td class="type-col">object</td>
+                <td>実行された具体的なユーザー操作内容の詳細</td>
+            </tr>
+            <tr>
+                <td class="prop-col">events[].action.type</td>
+                <td class="type-col">string</td>
+                <td>入力操作の種類（"click", "key_down", "text_input" など）</td>
+            </tr>
+            <tr>
+                <td class="prop-col">events[].action.button</td>
+                <td class="type-col">string</td>
+                <td>使用されたマウスボタン（"left", "right" など、キー入力時は省略可）</td>
+            </tr>
+            <tr>
+                <td class="prop-col">events[].action.modifiers</td>
+                <td class="type-col">array</td>
+                <td>同時に押下された修飾キー（"ctrl", "shift", "alt" など）の配列</td>
+            </tr>
+            <tr>
+                <td class="prop-col">events[].context</td>
+                <td class="type-col">object</td>
+                <td>操作実行時における対象要素および画面の状態コンテキスト</td>
+            </tr>
+            <tr>
+                <td class="prop-col">events[].context.interacted_element</td>
+                <td class="type-col">object</td>
+                <td>ユーザーが実際に操作を加えたUI要素の静的・意味的情報</td>
+            </tr>
+            <tr>
+                <td class="prop-col">events[].context.interacted_element.element_id</td>
+                <td class="type-col">string</td>
+                <td>操作対象となったUI要素を特定する内部ID</td>
+            </tr>
+            <tr>
+                <td class="prop-col">events[].context.interacted_element.ui_type</td>
+                <td class="type-col">string</td>
+                <td>要素のオブジェクトタイプ（"button", "input", "checkbox" 等）</td>
+            </tr>
+            <tr>
+                <td class="prop-col">events[].context.interacted_element.semantic_role</td>
+                <td class="type-col">string</td>
+                <td>要素の持つ意味的役割（"submit", "cancel", "search_box" 等）</td>
+            </tr>
+            <tr>
+                <td class="prop-col">events[].context.interacted_element.location_context</td>
+                <td class="type-col">string</td>
+                <td>配置上の視覚的コンテキスト（"bottom_right", "top_nav" 等）</td>
+            </tr>
+            <tr>
+                <td class="prop-col">events[].context.pre_action_state</td>
+                <td class="type-col">object</td>
+                <td>アクションが実行される直前のシステム・画面ステータス</td>
+            </tr>
+            <tr>
+                <td class="prop-col">events[].context.pre_action_state.image_ref</td>
+                <td class="type-col">string</td>
+                <td>自己修復や画像差分チェックに使用する操作前基準スクショのローカルパス</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>5.6. ワークフローデータ JSONフォーマット例</h3>
+    <p>構造定義に基づき、生成コアから出力されるワークフローデータのJSON表現です。</p>
+<pre><code>{
+  "workflow_ID": "wf_12345",
+  "target_ID": "target_app_001",
+  "events": [
+    {
+      "event_id": "evt_001",
+      "timestamp": 1717654800123,
+      "action": {
+        "type": "click",
+        "button": "left",
+        "modifiers": ["shift"]
+      },
+      "context": {
+        "interacted_element": {
+          "element_id": "btn_save",
+          "ui_type": "button",
+          "semantic_role": "submit",
+          "location_context": "bottom_right"
+        },
+        "pre_action_state": {
+          "image_ref": "/logs/wf_12345/evt_001_pre.png"
+        }
+      }
+    }
+  ]
+}</code></pre>
+
 </body>
 </html>
