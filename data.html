@@ -12,9 +12,169 @@
     <a href="index.html" class="nav-back">← トップページ（目次）に戻る</a>
 
     <h2>5. データ要件と構造定義</h2>
-    <p>解析モード（録画）で取得する生データと、YOLO/OCR解析を統合したデータの仕様です。自己修復機能における「コンテキスト理解」と「相対座標によるウィンドウ移動耐性」を担保します。</p>
+    <p>本システムで扱うデータ定義です。記録時に各モジュール（YOLO、OCR、Python）が個別に取得する「生データ」の構造を先に行い、それらをコンテキスト理解や自己修復のために集約・紐付けした「統合データ」の構造を後ろに定義します。</p>
 
-    <h3>5.1. データ構造テーブル</h3>
+    <h3>5.1. 生データ構造定義</h3>
+    <p>解析モード（録画）の開始時、各認識エンジンおよびフックモジュールから独立して出力・保存されるデータ構造です。</p>
+
+    <h4>5.1.1. UI認識データ（YOLO Engine）</h4>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th class="prop-col">プロパティ (階層)</th>
+                <th class="type-col">型</th>
+                <th>説明・格納される値</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="prop-col">uiAnalysis.timestamp</td>
+                <td class="type-col">number</td>
+                <td>画像を取得・解析した時間（Unixタイムスタンプ）</td>
+            </tr>
+            <tr>
+                <td class="prop-col">uiAnalysis.boundingBox</td>
+                <td class="type-col">object</td>
+                <td>認識したUI要素のバウンディングボックス座標 {x, y, width, height}</td>
+            </tr>
+            <tr>
+                <td class="prop-col">uiAnalysis.type</td>
+                <td class="type-col">string</td>
+                <td>物体認識されたUIの種類（"button", "dropdown", "input" など）</td>
+            </tr>
+            <tr>
+                <td class="prop-col">uiAnalysis.confidence</td>
+                <td class="type-col">number</td>
+                <td>AIによるUI認識の信頼度・精度 (0.0〜1.0)</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h4>5.1.2. テキスト認識データ（OCR Engine）</h4>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th class="prop-col">プロパティ (階層)</th>
+                <th class="type-col">型</th>
+                <th>説明・格納される値</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="prop-col">textAnalysis.timestamp</td>
+                <td class="type-col">number</td>
+                <td>画像を取得・解析した時間（Unixタイムスタンプ）</td>
+            </tr>
+            <tr>
+                <td class="prop-col">textAnalysis.boundingBox</td>
+                <td class="type-col">object</td>
+                <td>認識したテキスト領域のバウンディングボックス座標 {x, y, width, height}</td>
+            </tr>
+            <tr>
+                <td class="prop-col">textAnalysis.content</td>
+                <td class="type-col">string</td>
+                <td>OCRエンジンにより読み取られた文字列内容</td>
+            </tr>
+            <tr>
+                <td class="prop-col">textAnalysis.confidence</td>
+                <td class="type-col">number</td>
+                <td>OCRによるテキスト認識の信頼度・精度 (0.0〜1.0)</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h4>5.1.3. 入力操作データ（Python OS Hook）</h4>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th class="prop-col">プロパティ (階層)</th>
+                <th class="type-col">型</th>
+                <th>説明・格納される値</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="prop-col">inputLog.timestamp</td>
+                <td class="type-col">number</td>
+                <td>OSレベルで操作をフック・検出した時間（Unixタイムスタンプ）</td>
+            </tr>
+            <tr>
+                <td class="prop-col">inputLog.type</td>
+                <td class="type-col">string</td>
+                <td>入力操作の種類（"click_down", "key_down" など）</td>
+            </tr>
+            <tr>
+                <td class="prop-col">inputLog.content</td>
+                <td class="type-col">string</td>
+                <td>具体的な入力内容（"left_click", "Enter", または入力文字など）</td>
+            </tr>
+            <tr>
+                <td class="prop-col">inputLog.croppedImagePath</td>
+                <td class="type-col">string</td>
+                <td>操作が行われた位置の周辺を切り抜いた画像ファイルのローカルパス</td>
+            </tr>
+            <tr>
+                <td class="prop-col">inputLog.windowName</td>
+                <td class="type-col">string</td>
+                <td>操作対象となったアプリケーションのウィンドウタイトル名</td>
+            </tr>
+            <tr>
+                <td class="prop-col">inputLog.windowSize</td>
+                <td class="type-col">object</td>
+                <td>対象ウィンドウの全体サイズ {width, height}</td>
+            </tr>
+            <tr>
+                <td class="prop-col">inputLog.windowCoordinates</td>
+                <td class="type-col">object</td>
+                <td>対象ウィンドウのデスクトップ上における絶対座標 {x, y}</td>
+            </tr>
+            <tr>
+                <td class="prop-col">inputLog.cursorCoordinates</td>
+                <td class="type-col">object</td>
+                <td>操作が実行された瞬間のマウスカーソルの絶対座標 {x, y}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>5.2. 生データ JSONフォーマット例</h3>
+    <p>各検出モジュールが単独でディスクまたはメモリ上に保存する段階のJSON表現です。</p>
+
+    <h4>5.2.1. UI認識データ例（YOLO Engine）</h4>
+<pre><code>{
+  "uiAnalysis": {
+    "timestamp": 1717654800100,
+    "boundingBox": { "x": 1220, "y": 280, "width": 60, "height": 40 },
+    "type": "button",
+    "confidence": 0.95
+  }
+}</code></pre>
+
+    <h4>5.2.2. テキスト認識データ例（OCR Engine）</h4>
+<pre><code>{
+  "textAnalysis": {
+    "timestamp": 1717654800105,
+    "boundingBox": { "x": 1225, "y": 285, "width": 50, "height": 30 },
+    "content": "保存する",
+    "confidence": 0.98
+  }
+}</code></pre>
+
+    <h4>5.2.3. 入力操作データ例（Python OS Hook）</h4>
+<pre><code>{
+  "inputLog": {
+    "timestamp": 1717654800123,
+    "type": "click_down",
+    "content": "left_click",
+    "croppedImagePath": "/logs/session_1/step_012_crop.png",
+    "windowName": "社内システム - Google Chrome",
+    "windowSize": { "width": 1920, "height": 1080 },
+    "windowCoordinates": { "x": 0, "y": 0 },
+    "cursorCoordinates": { "x": 1250, "y": 300 }
+  }
+}</code></pre>
+
+    <h3>5.3. 統合データ構造定義</h3>
+    <p>各自律機能やAI生成コアが「コンテキスト理解」および「相対座標によるウィンドウ移動耐性」を確保するため、上記の生データをタイムスタンプや座標情報を基準に結合・構造化したデータモデルです。</p>
     <table class="data-table">
         <thead>
             <tr>
@@ -27,7 +187,7 @@
             <tr>
                 <td class="prop-col">id</td>
                 <td class="type-col">string</td>
-                <td>ログの一意なID (例: "step_001")</td>
+                <td>統合ログの一意なID (例: "step_001")</td>
             </tr>
             <tr>
                 <td class="prop-col">action.type</td>
@@ -92,7 +252,7 @@
         </tbody>
     </table>
 
-    <h3>5.2. 統合データ JSONフォーマット例</h3>
+    <h3>5.4. 統合データ JSONフォーマット例</h3>
 <pre><code>{
   "id": "step_012",
   "rawLog": {
