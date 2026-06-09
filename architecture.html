@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ディレクトリ構造と開発要件 - AIオートマクロ仕様書</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <a href="index.html" class="nav-back">← トップページ（目次）に戻る</a>
+
+    <h2>7. ディレクトリ構造と開発要件 (ADR)</h2>
+    <p>本システムのUIとロジックを完全に疎結合化し、各認識エンジンや自己修復プロセスを関心事ごとに分離するための全体アーキテクチャおよび開発ルールを定義します。</p>
+
+    <h3>7.1. ディレクトリ構成</h3>
+    <pre><code>ai-macro-system/
+├── src/
+│   ├── main.py                  // アプリケーションのエントリポイント
+│   ├── ui/                      // 1画面構造・ウィジェットを管理するUI層
+│   │   ├── views/               // MainWindow, RecordDialogなどのビュークラス
+│   │   ├── viewmodels/          // UIの状態とビジネスロジックの橋渡し
+│   │   └── resources/           // .uiファイルや.cssファイルを格納
+│   │       ├── ui/
+│   │       └── css/
+│   ├── core/                    // ビジネスロジック層
+│   │   ├── recorder/            // 操作記録（OS Hook）および入力操作データの取得
+│   │   ├── generator/           // 統合データからのマクロコードAI生成
+│   │   ├── executor/            // 動的待機・即時ポーリングによる実行エンジン
+│   │   └── healer/              // 4段階自己修復（Image Diff検証・動的再生成）エンジン
+│   ├── engines/                 // 外部認識エンジン層
+│   │   ├── yolo/                // UI要素認識エンジン
+│   │   └── ocr/                 // テキスト認識エンジン
+│   ├── models/                  // workflow_IDや統合データのデータ構造定義
+│   └── utils/                   // 環境変数管理、ロガーなどの共通ユーティリティ
+├── tests/                       // 振る舞い・エラーテスト群
+│   ├── ui/                      // UI状態遷移の検証
+│   ├── core/                    // ロジックと例外処理の検証
+│   └── integration/             // 自己修復フローのエンドツーエンド検証
+├── macros/                      // 生成されたマクロごとにリソースをカプセル化するディレクトリ
+│   └── wf_template/             // workflow.jsonやimagesを格納
+├── docs/                        // HTML仕様書群およびADR
+├── .env.example                 // 環境変数のテンプレート
+├── requirements.txt             // 依存パッケージ
+└── README.md                    // 実例込みのドキュメント</code></pre>
+
+    <h3>7.2. アプリケーション開発要件</h3>
+    <div class="highlight-box">
+        <h4>【基本・設計】</h4>
+        <ul>
+            <li><strong>ファイル責務の明示:</strong> 全てのファイルの冒頭にAI向け役割コメント（例: <code>@role: ...</code>）を記述し、関心事ごとにファイルを細かく分割する。</li>
+            <li><strong>疎結合の徹底:</strong> PySide6を用いたUI層と、生成・実行などのビジネスロジック層を完全に分離する。</li>
+            <li><strong>コードの意図:</strong> 処理の「何」はコードの命名や構造で表現し、コメントには「なぜその実装にしたのか（背景）」のみを記述する。</li>
+        </ul>
+    </div>
+
+    <div class="highlight-box">
+        <h4>【品質・保守】</h4>
+        <ul>
+            <li><strong>命名とDRY原則:</strong> DRY原則を徹底し、変数や関数の命名から推測可能な明確な構造を維持する。</li>
+            <li><strong>ボーイスカウトルール:</strong> 機能の追加・修正時には、周辺に存在する既存の技術的負債も同時に修正する。</li>
+            <li><strong>非推奨の禁止:</strong> 非推奨（Deprecated）なライブラリや関数の使用は禁止。必須時は代替案と理由を提示し要承諾。</li>
+        </ul>
+    </div>
+
+    <div class="highlight-box">
+        <h4>【セキュリティ・堅牢性】</h4>
+        <ul>
+            <li><strong>機密情報の保護:</strong> APIキー等の環境依存情報は <code>.env</code> を用いて環境変数化し、ハードコードを厳禁とする。</li>
+            <li><strong>入力のサニタイズ:</strong> 各認識エンジン（YOLO、OCR）やOS Hookからの生データは、必ず検証・サニタイズを行ってから統合データとして処理する。</li>
+            <li><strong>エラーハンドリング:</strong> エラー握り潰しは厳禁。画像差分超過や対象UI見失い時は、4段階自己修復ツリーに従い自律対応、または安全に強制終了させる。</li>
+            <li><strong>外部通信の失敗前提:</strong> AIコアへのリクエスト等、外部通信は失敗を前提としタイムアウトとリトライ機構を必ず実装する。</li>
+        </ul>
+    </div>
+
+    <div class="highlight-box">
+        <h4>【テスト・運用】</h4>
+        <ul>
+            <li><strong>振る舞いのテスト:</strong> 内部実装詳細（プライベートメソッド等）には依存せず、「マクロの実行という振る舞い」と「異常発生時のエラー検知・修復・安全停止」が正しく機能するかを <code>tests/</code> 以下の各層（ui, core, integration）で検証する。</li>
+            <li><strong>ドキュメント運用:</strong> 実例を含めたREADMEを作成し、重要設計はADR（Architecture Decision Records）として提案・蓄積する。</li>
+        </ul>
+    </div>
+
+</body>
+</html>
