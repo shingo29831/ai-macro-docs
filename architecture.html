@@ -12,9 +12,10 @@
     <a href="index.html" class="nav-back">← トップページ（目次）に戻る</a>
 
     <h2>7. ディレクトリ構造と開発要件 (ADR)</h2>
-    <p>本システムのUIとロジックを完全に疎結合化し、各認識エンジンや自己修復プロセスを関心事ごとに分離するための全体アーキテクチャおよび開発ルールを定義します。</p>
+    <p>本システムのUIとロジックを完全に疎結合化し、各モジュールの関心事を分離するための「ソースコード構成」と、実行時に生成される「データ構成」のルールを定義します。</p>
 
-    <h3>7.1. ディレクトリ構成</h3>
+    <h3>7.1. ソースコードのディレクトリ構成 (src/)</h3>
+    <p>アプリケーション本体の設計構造です。UI層、ビジネスロジック層(Core)、外部エンジン層を明確に分離しています。</p>
     <pre><code>ai-macro-system/
 ├── src/
 │   ├── main.py                  // アプリケーションのエントリポイント
@@ -22,8 +23,6 @@
 │   │   ├── views/               // MainWindow, RecordDialogなどのビュークラス
 │   │   ├── viewmodels/          // UIの状態とビジネスロジックの橋渡し
 │   │   └── resources/           // .uiファイルや.cssファイルを格納
-│   │       ├── ui/
-│   │       └── css/
 │   ├── core/                    // ビジネスロジック層
 │   │   ├── recorder/            // 操作記録（OS Hook）および入力操作データの取得
 │   │   ├── generator/           // 統合データからのマクロコードAI生成
@@ -32,20 +31,52 @@
 │   ├── engines/                 // 外部認識エンジン層
 │   │   ├── yolo/                // UI要素認識エンジン
 │   │   └── ocr/                 // テキスト認識エンジン
-│   ├── models/                  // workflow_IDや統合データのデータ構造定義
+│   ├── models/                  // workflow_IDやデータのスキーマ構造定義
 │   └── utils/                   // 環境変数管理、ロガーなどの共通ユーティリティ
 ├── tests/                       // 振る舞い・エラーテスト群
 │   ├── ui/                      // UI状態遷移の検証
 │   ├── core/                    // ロジックと例外処理の検証
 │   └── integration/             // 自己修復フローのエンドツーエンド検証
-├── macros/                      // 生成されたマクロごとにリソースをカプセル化するディレクトリ
-│   └── wf_template/             // workflow.jsonやimagesを格納
-├── docs/                        // HTML仕様書群およびADR
 ├── .env.example                 // 環境変数のテンプレート
 ├── requirements.txt             // 依存パッケージ
 └── README.md                    // 実例込みのドキュメント</code></pre>
 
-    <h3>7.2. アプリケーション開発要件</h3>
+    <h3>7.2. 実行時データと生成マクロのディレクトリ構成 (macros/)</h3>
+    <p>ユーザーがマクロを記録・生成する際に動的に作られるデータ領域です。特に一時データ（temp）のライフサイクル管理を厳格に行います。</p>
+    <pre><code>ai-macro-system/
+└── macros/
+    └── wf_12345/                 // 記録時に発行される一意なマクロIDごとのルートディレクトリ
+        ├── workflow.json         // 実行用マクロシナリオ (Executorが読み込む)
+        ├── integrated.json       // コンテキスト統合データ (Healerが修復時に参照)
+        ├── images/               // 永続化される画像リソース
+        │   ├── evt_001_pre.png   // 操作前スクショ
+        │   └── evt_001_crop.png  // 対象UIクロップ画像
+        │
+        └── temp/                 // ⚠️ 一時データ領域（生成完了後に自動破棄）
+            ├── input_logs.json   // OS Hookからの入力生ログ
+            ├── evt_001_yolo.json // YOLOエンジンの解析生データ
+            └── evt_001_ocr.json  // OCRエンジンの解析生データ</code></pre>
+
+    <div class="highlight-box">
+        <h4>📁 マクロ関連ディレクトリとファイルの役割・ライフサイクル</h4>
+        <ul>
+            <li><strong>macros/wf_*/ (マクロルート)</strong><br>
+                1つのマクロにつき1つ作成されるカプセル化されたフォルダです。画像の参照パスなどを相対的に保ちます。
+            </li>
+            <li><strong>workflow.json / integrated.json / images/ (永続データ)</strong><br>
+                AI生成フェーズ完了後も残り続ける最終成果物です。実行エンジンや自己修復プロセスが参照します。
+            </li>
+            <li><strong>temp/ (一時データ領域)</strong><br>
+                記録中・解析中に各エンジンが取得した「生データ」を一時的に退避させる場所です。
+                <ul style="margin-top: 4px; color: #b91c1c;">
+                    <li><strong>【生成タイミング】</strong> 記録（OS Hook）時、およびGeneratorからYOLO/OCRへ解析リクエストを送った直後。</li>
+                    <li><strong>【破棄タイミング】</strong> Generator層が生データを読み込み <code>integrated.json</code> と <code>workflow.json</code> を生成した直後に、<strong>ディレクトリごと完全に削除（自動破棄）</strong>されます。これによりJSONの冗長化やディスク容量の圧迫を防ぎます。</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <h3>7.3. アプリケーション開発要件</h3>
     <div class="highlight-box">
         <h4>【基本・設計】</h4>
         <ul>
@@ -71,14 +102,6 @@
             <li><strong>入力のサニタイズ:</strong> 各認識エンジン（YOLO、OCR）やOS Hookからの生データは、必ず検証・サニタイズを行ってから統合データとして処理する。</li>
             <li><strong>エラーハンドリング:</strong> エラー握り潰しは厳禁。画像差分超過や対象UI見失い時は、4段階自己修復ツリーに従い自律対応、または安全に強制終了させる。</li>
             <li><strong>外部通信の失敗前提:</strong> AIコアへのリクエスト等、外部通信は失敗を前提としタイムアウトとリトライ機構を必ず実装する。</li>
-        </ul>
-    </div>
-
-    <div class="highlight-box">
-        <h4>【テスト・運用】</h4>
-        <ul>
-            <li><strong>振る舞いのテスト:</strong> 内部実装詳細（プライベートメソッド等）には依存せず、「マクロの実行という振る舞い」と「異常発生時のエラー検知・修復・安全停止」が正しく機能するかを <code>tests/</code> 以下の各層（ui, core, integration）で検証する。</li>
-            <li><strong>ドキュメント運用:</strong> 実例を含めたREADMEを作成し、重要設計はADR（Architecture Decision Records）として提案・蓄積する。</li>
         </ul>
     </div>
 
