@@ -459,5 +459,41 @@
   ]
 }</code></pre>
 
+    <h3>6.8. アプリケーション設定データ（config.json）</h3>
+    <p>ユーザーが画面上の設定エリアから変更した接続先エンドポイントなどの情報を管理・永続化するためのデータ構造です。本ファイルはアプリケーションのルートディレクトリに配置されます。</p>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th class="prop-col">プロパティ</th>
+                <th class="type-col">型</th>
+                <th>説明・格納される値</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="prop-col">ai_endpoint</td>
+                <td class="type-col">string</td>
+                <td>AI解析サーバーの接続先（IPアドレスまたはドメイン名。例: 127.0.0.1, api.ai-macro.local）</td>
+            </tr>
+            <tr>
+                <td class="prop-col">yolo_port</td>
+                <td class="type-col">string</td>
+                <td>Computer Vision API（YOLO/OCR）のポート番号（デフォルト: 8843）</td>
+            </tr>
+            <tr>
+                <td class="prop-col">llm_port</td>
+                <td class="type-col">string</td>
+                <td>LLM API（マクロ生成用AI）のポート番号（デフォルト: 8844）</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>6.9. アプリケーション設定 JSONフォーマット例</h3>
+<pre><code>{
+  "ai_endpoint": "127.0.0.1",
+  "yolo_port": "8843",
+  "llm_port": "8844"
+}</code></pre>
+
 </body>
 </html>

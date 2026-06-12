@@ -35,6 +35,7 @@
 │   ├── models/                  // workflow_IDやデータのスキーマ構造定義
 │   └── utils/                   // 環境変数管理、ロガーなどの共通ユーティリティ
 ├── tests/                       // 振る舞い・エラーテスト群
+├── config.json                  // ユーザーが設定画面から変更した接続情報を永続化するファイル
 ├── .env.example                 // 環境変数のテンプレート
 ├── requirements.txt             // 依存パッケージ
 └── README.md                    // 実例込みのドキュメント</code></pre>
@@ -86,6 +87,7 @@
 import subprocess
 import os
 import atexit
+import json
 from typing import List
 
 class LocalServerManager:
@@ -93,16 +95,27 @@ class LocalServerManager:
         self._processes: List[subprocess.Popen] = []
 
     def start_servers(self) -> None:
-        # Prevent UI freeze by handling heavy model loading in detached processes.
-        env = os.environ.copy()
-        
-        yolo_port = env.get('YOLO_PORT', '8843')
-        llm_port = env.get('LLM_PORT', '8844')
+        # Load custom connection settings to determine if local servers are needed.
+        config_path = 'config.json'
+        ai_endpoint = '127.0.0.1'
+        yolo_port = '8843'
+        llm_port = '8844'
 
-        # Fast fail if environment variable explicitly disables local servers
-        if env.get('USE_LOCAL_AI', 'true').lower() != 'true':
+        if os.path.exists(config_path):
+            try:
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+                    ai_endpoint = config.get('ai_endpoint', '127.0.0.1')
+                    yolo_port = config.get('yolo_port', '8843')
+                    llm_port = config.get('llm_port', '8844')
+            except Exception:
+                pass
+
+        # Skip starting background processes when routing to an external network or cloud service.
+        if ai_endpoint not in ['127.0.0.1', 'localhost']:
             return
 
+        env = os.environ.copy()
         yolo_cmd = ['python', '-m', 'uvicorn', 'engines.yolo.server:app', '--port', yolo_port]
         yolo_proc = subprocess.Popen(yolo_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         self._processes.append(yolo_proc)
@@ -133,22 +146,22 @@ class LocalServerManager:
     </div>
 
     <div class="highlight-box" style="border-left-color: #10b981;">
-        <h4 style="color: #047857;">🌍 柔軟なエンドポイント設計 (環境変数駆動)</h4>
-        <p>AIの実体をどこで動かすかは、環境変数（<code>.env</code>）のIPアドレスやURLを変更するだけでコードを修正することなく透過的に切り替えられる設計とします。</p>
+        <h4 style="color: #047857;">🌍 柔軟なエンドポイント設計 (設定画面駆動)</h4>
+        <p>AIの実体をどこで動かすかは、ホーム画面の設定エリアから変更されたIPアドレスやドメイン名（<code>config.json</code>に永続化）を基に、ソースコードを書き換えることなく透過的に切り替えられる設計とします。</p>
         <ul>
-            <li><strong>ローカルPC駆動:</strong> <code>127.0.0.1</code> を指定し、ユーザーのPC内で全て完結させる構成。LocalServerManagerが作動します。</li>
-            <li><strong>ローカルネットワーク(LAN)別サーバー駆動:</strong> <code>192.168.x.x</code> 等のIPを指定し、同一ネットワーク上のGPU搭載サーバー等に重いAI処理を委譲する構成。</li>
-            <li><strong>クラウドAI駆動:</strong> ホスト名に外部APIのURLを指定し、強力なクラウドLLM（OpenAI等）を利用する構成。</li>
+            <li><strong>ローカルPC駆動:</strong> <code>127.0.0.1</code> または <code>localhost</code> を指定し、ユーザーのPC内で全て完結させる構成。LocalServerManagerが作動し、ローカルのVRAM上にモデルを展開します。</li>
+            <li><strong>ローカルネットワーク(LAN)別サーバー駆動:</strong> <code>192.168.x.x</code> 等のプライベートIPや社内ローカルドメインを指定し、同一ネットワーク上のGPU搭載サーバー等に重いAI処理を委譲する構成。ローカルプロセスは起動しません。</li>
+            <li><strong>クラウドAI駆動:</strong> 外部APIのホスト名やドメイン名（例: <code>api.openai.com</code> 等）を指定し、クラウド上の強力なLLMやCVサービスを利用する構成。セキュリティ要件に基づき外部入力は暗号化通信を前提とします。</li>
         </ul>
     </div>
 
     <div class="highlight-box">
         <h4>【セキュリティ・堅牢性・設計要件】</h4>
         <ul>
-            <li><strong>ファイル責務の明示:</strong> 全てのファイルの冒頭にAI向け役割コメント（例: <code>@role: ...</code>）を記述し、関心事ごとにファイルを細かく分割する。</li>
-            <li><strong>機密情報の保護:</strong> APIのIPアドレス、ポート番号、クラウドAPIキー等の環境依存情報は <code>.env</code> を用いて環境変数化し、ハードコードを厳禁とする。</li>
-            <li><strong>外部通信の失敗前提:</strong> AIコア（8843/8844ポート等）へのリクエストは失敗を前提とし、タイムアウトとリトライ機構を必ず実装する。</li>
-            <li><strong>入力のサニタイズ:</strong> 各認識エンジンやOS Hookからの生データは、必ず検証・サニタイズを行ってから統合データとして処理する。</li>
+            <li><strong>ファイル責務 of 明示:</strong> 全てのファイルの冒頭にAI向け役割コメント（例: <code>@role: ...</code>）を記述し、関心事ごとにファイルを細かく分割する。</li>
+            <li><strong>機密情報の保護:</strong> 設定ファイル（<code>config.json</code>）や環境変数テンプレートに記載するトークンや認証キー等の情報は取り扱いに注意し、ハードコードを厳禁とする。</li>
+            <li><strong>外部通信の失敗前提:</strong> 変更されたアドレス（8843/8844ポート等）へのリクエストはネットワーク瞬断やサーバーダウンを前提とし、UIをフリーズさせない非同期でのタイムアウトとリトライ機構を必ず実装する。</li>
+            <li><strong>入力のサニタイズ:</strong> ユーザーが設定に入力したIPアドレスおよびドメイン名は、不正な文字やコマンドインジェクションを防ぐため、バリデーションとサニタイズを徹底した上で保存する。</li>
         </ul>
     </div>
 
