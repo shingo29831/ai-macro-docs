@@ -1,4 +1,3 @@
-<!-- @role: Defines the data requirements and structures for raw data, integrated contexts, and execution workflows. -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -12,10 +11,10 @@
 
     <a href="index.html" class="nav-back">← トップページ（目次）に戻る</a>
 
-    <h2>5. データ要件と構造定義</h2>
+    <h2>6. データ要件と構造定義</h2>
     <p>本システムで扱うデータ定義です。記録時に各モジュール（YOLO、OCR、Python）が個別に取得する「生データ」の構造を先に行い、それらをコンテキスト理解や自己修復のために集約・紐付けした「統合データ」の構造を後ろに定義します。</p>
 
-    <h3>5.1. リソースディレクトリ構成と命名規則</h3>
+    <h3>6.1. リソースディレクトリ構成と命名規則</h3>
     <p>JSONファイル自体の肥大化を防ぎ、かつ画像パスを決定論的に特定するため、マクロごとに一意なディレクトリ（workflow_ID）を作成し、リソースをカプセル化します。</p>
 
 <pre><code>macros/
@@ -38,12 +37,10 @@
         各モジュールが取得する生データ（YOLO、OCR、入力ログ）は、マクロの生成処理中にのみ <code>temp/</code> ディレクトリ内へ一時的に保存されます。これらは <code>integrated.json</code> に必要なコンテキストとして集約された直後に、<code>temp/</code> ディレクトリごと完全に破棄され、永続化は行いません（データ冗長性の排除とディスク容量の節約）。
     </p>
 
-    <!-- 理由: 実行エンジンはJSONからevent_idを読み取り、ディレクトリ規則に従って動的に画像パスを組み立てる。これによりJSONにハードコードされたパスが不要となる。 -->
-
-    <h3>5.2. 生データ構造定義（一時データ）</h3>
+    <h3>6.2. 生データ構造定義（一時データ）</h3>
     <p>解析モード（録画）中、各認識エンジンおよびフックモジュールが出力するデータ構造です（統合後に破棄）。</p>
 
-    <h4>5.2.1. UI認識データ（YOLO Engine）</h4>
+    <h4>6.2.1. UI認識データ（YOLO Engine）</h4>
     <table class="data-table">
         <thead>
             <tr>
@@ -76,7 +73,7 @@
         </tbody>
     </table>
 
-    <h4>5.2.2. テキスト認識データ（OCR Engine）</h4>
+    <h4>6.2.2. テキスト認識データ（OCR Engine）</h4>
     <table class="data-table">
         <thead>
             <tr>
@@ -109,7 +106,7 @@
         </tbody>
     </table>
 
-    <h4>5.2.3. 入力操作データ（Python OS Hook）</h4>
+    <h4>6.2.3. 入力操作データ（Python OS Hook）</h4>
     <table class="data-table">
         <thead>
             <tr>
@@ -157,10 +154,10 @@
         </tbody>
     </table>
 
-    <h3>5.3. 生データ JSONフォーマット例</h3>
+    <h3>6.3. 生データ JSONフォーマット例</h3>
     <p>統合前に各検出モジュールが一時的に保持するデータのJSON表現です。</p>
 
-    <h4>5.3.1. UI認識データ例（YOLO Engine）</h4>
+    <h4>6.3.1. UI認識データ例（YOLO Engine）</h4>
 <pre><code>{
   "uiAnalysis": {
     "timestamp": 1717654800100,
@@ -170,7 +167,7 @@
   }
 }</code></pre>
 
-    <h4>5.3.2. テキスト認識データ例（OCR Engine）</h4>
+    <h4>6.3.2. テキスト認識データ例（OCR Engine）</h4>
 <pre><code>{
   "textAnalysis": {
     "timestamp": 1717654800105,
@@ -180,7 +177,7 @@
   }
 }</code></pre>
 
-    <h4>5.3.3. 入力操作データ例（Python OS Hook）</h4>
+    <h4>6.3.3. 入力操作データ例（Python OS Hook）</h4>
 <pre><code>{
   "inputLog": {
     "timestamp": 1717654800123,
@@ -193,7 +190,7 @@
   }
 }</code></pre>
 
-    <h3>5.4. 統合データ構造定義</h3>
+    <h3>6.4. 統合データ構造定義</h3>
     <p>自律機能やAI生成コアが「コンテキスト理解」を確保するため、一時データをウィンドウ基準の階層型ツリー（DOMライク）に統合したデータモデルです。</p>
     <table class="data-table">
         <thead>
@@ -307,7 +304,7 @@
         </tbody>
     </table>
 
-    <h3>5.5. 統合データ JSONフォーマット例</h3>
+    <h3>6.5. 統合データ JSONフォーマット例</h3>
 <pre><code>{
   "id": "evt_012",
   "timestamp": 1717654800123,
@@ -347,7 +344,7 @@
   }
 }</code></pre>
 
-    <h3>5.6. ワークフローデータ構造定義</h3>
+    <h3>6.6. ワークフローデータ構造定義</h3>
     <p>統合ログから抽出・生成され、実行エンジンへと引き渡されるマクロシナリオの構造定義です。</p>
     <table class="data-table">
         <thead>
@@ -436,7 +433,7 @@
         </tbody>
     </table>
 
-    <h3>5.7. ワークフローデータ JSONフォーマット例</h3>
+    <h3>6.7. ワークフローデータ JSONフォーマット例</h3>
     <p>構造定義に基づき、生成コアから出力されるワークフローデータのJSON表現です。</p>
 <pre><code>{
   "workflow_ID": "wf_12345",

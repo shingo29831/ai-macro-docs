@@ -11,10 +11,10 @@
 
     <a href="index.html" class="nav-back">← トップページ（目次）に戻る</a>
 
-    <h2>7. ディレクトリ構造と開発要件 (ADR)</h2>
-    <p>本システムのUIとロジックを完全に疎結合化し、各モジュールの関心事を分離するための「ソースコード構成」と、実行時に生成される「データ構成」、およびチーム開発における「役割分担」のルールを定義します。</p>
+    <h2>8. ディレクトリ構造と開発要件 (ADR)</h2>
+    <p>本システムのUIとロジックを完全に疎結合化し、各モジュールの関心事を分離するための「ソースコード構成」と、実行時に生成される「データ構成」を定義します。</p>
 
-    <h3>7.1. ソースコードのディレクトリ構成 (src/)</h3>
+    <h3>8.1. ソースコードのディレクトリ構成 (src/)</h3>
     <p>アプリケーション本体の設計構造です。UI層、ビジネスロジック層(Core)、外部エンジン層を明確に分離しています。</p>
     <pre><code>ai-macro-system/
 ├── src/
@@ -39,7 +39,7 @@
 ├── requirements.txt             // 依存パッケージ
 └── README.md                    // 実例込みのドキュメント</code></pre>
 
-    <h3>7.2. 実行時データと生成マクロのディレクトリ構成 (macros/)</h3>
+    <h3>8.2. 実行時データと生成マクロのディレクトリ構成 (macros/)</h3>
     <p>ユーザーがマクロを記録・生成する際に動的に作られるデータ領域です。特に一時データ（temp）のライフサイクル管理を厳格に行います。</p>
     <pre><code>ai-macro-system/
 └── macros/
@@ -74,47 +74,7 @@
         </ul>
     </div>
 
-    <h3>7.3. 開発体制と役割分担 (ADR)</h3>
-    <p>各モジュールの関心事の分離（疎結合）を徹底するため、以下の5つの役割で開発を分担します。</p>
-
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th style="width: 25%;">役割</th>
-                <th style="width: 25%;">主な担当ファイル</th>
-                <th>詳細タスクと責務</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td><strong>1. 全体設計・データモデル<br>・UI連携</strong></td>
-                <td><code>models/data_types.py</code><br><code>ui/viewmodels/</code></td>
-                <td>Pydanticを用いた共通データ構造定義、MainWindowとバックエンド処理を繋ぐViewModel層の実装、全体のコードレビューとアーキテクチャの治安維持。</td>
-            </tr>
-            <tr>
-                <td><strong>2. 操作記録 (Recorder)</strong></td>
-                <td><code>core/recorder/</code></td>
-                <td>pynput等を用いたOSレベルの操作フック、操作間隔・座標の取得と一時ログへの書き出し、記録中における操作前後のスクリーンショット取得。</td>
-            </tr>
-            <tr>
-                <td><strong>3. AIエンジン連携<br>・環境構築 (Engines)</strong></td>
-                <td><code>engines/yolo/</code><br><code>engines/ocr/</code><br><code>engines/manager.py</code></td>
-                <td><strong>AI APIサーバーの構築・保守</strong>と通信処理。UIスレッドをブロックしない非同期通信、タイムアウト・リトライ機構の実装、環境変数による実行環境切り替え、Image Diff検証モジュールの開発。</td>
-            </tr>
-            <tr>
-                <td><strong>4. コンテキスト統合<br>・マクロ生成 (Generator)</strong></td>
-                <td><code>core/generator/</code></td>
-                <td>生ログと画像を読み込み、Engines側のモジュールと連携。UIの相対座標計算や周辺テキストとの関連付け、<code>workflow.json</code> / <code>integrated.json</code> の出力と一時ディレクトリの自動破棄。</td>
-            </tr>
-            <tr>
-                <td><strong>5. 実行・最速化 (Executor)</strong></td>
-                <td><code>core/executor/</code></td>
-                <td>workflow.json を読み込み操作を再現。200ms間隔でのImage Diff検証による即時ポーリング（最速実行）の実装、異常時・タイムアウト発生時の適切なエラーハンドリング。</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <h3>7.4. ローカルAIサーバーの起動・管理設計 (ADR)</h3>
+    <h3>8.3. ローカルAIサーバーの起動・管理設計 (ADR)</h3>
     <p>YOLOやLLMなどのAIモデルは、プロセスの立ち上げからVRAMへのモデル展開（重みのロード）までに数十秒の時間を要します。UXを維持しタイムアウトを防ぐため、マクロ生成時ではなく<strong>「デスクトップアプリ起動時」にバックグラウンドで事前起動（ウォームアップ）</strong>させておく設計を採用します。</p>
 
     <div class="highlight-box">
@@ -160,7 +120,7 @@ class LocalServerManager:
         self._processes.clear()</code></pre>
     </div>
 
-    <h3>7.5. ネットワーク設計とアプリケーション開発要件</h3>
+    <h3>8.4. ネットワーク設計とアプリケーション開発要件</h3>
 
     <div class="highlight-box">
         <h4>🔌 ポート設計と役割分担</h4>
