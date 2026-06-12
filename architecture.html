@@ -80,7 +80,7 @@
 
     <div class="highlight-box">
         <h4>🖥️ 独立プロセスによるサーバー管理 (LocalServerManager)</h4>
-        <p>UIスレッド（PySide6）のフリーズを完全に防止するため、Pythonの <code>subprocess</code> モジュールを利用して完全に独立したプロセスとして推論サーバーを立ち上げます。アプリ終了時には <code>atexit</code> を用いて確実にプロセスをクリーンアップします。</p>
+        <p>UIスレッド（PySide6）のフリーズを完全に防止するため、Pythonの <code>subprocess</code> モジュールを利用して完全に独立したプロセスとして推論サーバーを立ち上げます。アプリ終了時には <code>atexit</code> を用いて確実にプロセスをクリーンアップします。<code>config.json</code>を読み込み、LLMとCV（YOLO/OCR）それぞれのホスト指定がローカルである場合のみ、該当するサーバープロセスを起動します。</p>
 <pre><code># engines/manager.py
 # @role: Manages the lifecycle of local AI API servers as independent background processes.
 
@@ -97,32 +97,38 @@ class LocalServerManager:
     def start_servers(self) -> None:
         # Load custom connection settings to determine if local servers are needed.
         config_path = 'config.json'
-        ai_endpoint = '127.0.0.1'
-        yolo_port = '8843'
+        ai_mode = 'local'
+        llm_host = '127.0.0.1'
         llm_port = '8844'
+        cv_host = '127.0.0.1'
+        cv_port = '8843'
 
         if os.path.exists(config_path):
             try:
                 with open(config_path, 'r', encoding='utf-8') as f:
                     config = json.load(f)
-                    ai_endpoint = config.get('ai_endpoint', '127.0.0.1')
-                    yolo_port = config.get('yolo_port', '8843')
-                    llm_port = config.get('llm_port', '8844')
+                    ai_mode = config.get('ai_mode', 'local')
+                    llm_host = config.get('llm_host', '127.0.0.1')
+                    # Fallback to default port if explicitly empty
+                    llm_port = config.get('llm_port', '8844') or '8844'
+                    cv_host = config.get('cv_host', '127.0.0.1')
+                    cv_port = config.get('cv_port', '8843') or '8843'
             except Exception:
                 pass
 
-        # Skip starting background processes when routing to an external network or cloud service.
-        if ai_endpoint not in ['127.0.0.1', 'localhost']:
-            return
-
         env = os.environ.copy()
-        yolo_cmd = ['python', '-m', 'uvicorn', 'engines.yolo.server:app', '--port', yolo_port]
-        yolo_proc = subprocess.Popen(yolo_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        self._processes.append(yolo_proc)
 
-        llm_cmd = ['python', '-m', 'uvicorn', 'engines.llm.server:app', '--port', llm_port]
-        llm_proc = subprocess.Popen(llm_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        self._processes.append(llm_proc)
+        # Start LLM server if local mode is selected and host points to local machine
+        if ai_mode == 'local' and llm_host in ['127.0.0.1', 'localhost']:
+            llm_cmd = ['python', '-m', 'uvicorn', 'engines.llm.server:app', '--port', llm_port]
+            llm_proc = subprocess.Popen(llm_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            self._processes.append(llm_proc)
+
+        # Start CV server independently if host points to local machine
+        if cv_host in ['127.0.0.1', 'localhost']:
+            yolo_cmd = ['python', '-m', 'uvicorn', 'engines.yolo.server:app', '--port', cv_port]
+            yolo_proc = subprocess.Popen(yolo_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            self._processes.append(yolo_proc)
 
         atexit.register(self.stop_servers)
 
@@ -151,7 +157,7 @@ class LocalServerManager:
         <ul>
             <li><strong>ローカルPC駆動:</strong> <code>127.0.0.1</code> または <code>localhost</code> を指定し、ユーザーのPC内で全て完結させる構成。LocalServerManagerが作動し、ローカルのVRAM上にモデルを展開します。</li>
             <li><strong>ローカルネットワーク(LAN)別サーバー駆動:</strong> <code>192.168.x.x</code> 等のプライベートIPや社内ローカルドメインを指定し、同一ネットワーク上のGPU搭載サーバー等に重いAI処理を委譲する構成。ローカルプロセスは起動しません。</li>
-            <li><strong>クラウドAI駆動:</strong> 外部APIのホスト名やドメイン名（例: <code>api.openai.com</code> 等）を指定し、クラウド上の強力なLLMやCVサービスを利用する構成。セキュリティ要件に基づき外部入力は暗号化通信を前提とします。</li>
+            <li><strong>クラウドAI駆動:</strong> 「クラウドAI」を選択した上で、外部APIのホスト名やドメイン名（例: <code>api.openai.com</code> 等）を指定し、クラウド上の強力なLLMやCVサービスを利用する構成。セキュリティ要件に基づき外部入力は暗号化通信を前提とします。</li>
         </ul>
     </div>
 

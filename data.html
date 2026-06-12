@@ -471,28 +471,40 @@
         </thead>
         <tbody>
             <tr>
-                <td class="prop-col">ai_endpoint</td>
+                <td class="prop-col">ai_mode</td>
                 <td class="type-col">string</td>
-                <td>AI解析サーバーの接続先（IPアドレスまたはドメイン名。例: 127.0.0.1, api.ai-macro.local）</td>
+                <td>AIの動作モード（"local" または "cloud"）</td>
             </tr>
             <tr>
-                <td class="prop-col">yolo_port</td>
+                <td class="prop-col">llm_host</td>
                 <td class="type-col">string</td>
-                <td>Computer Vision API（YOLO/OCR）のポート番号（デフォルト: 8843）</td>
+                <td>マクロ生成用AI（LLM）の接続先（IPアドレスまたはホスト名）</td>
             </tr>
             <tr>
                 <td class="prop-col">llm_port</td>
                 <td class="type-col">string</td>
-                <td>LLM API（マクロ生成用AI）のポート番号（デフォルト: 8844）</td>
+                <td>LLM APIのポート番号。未指定時はデフォルトで "8844" を使用</td>
+            </tr>
+            <tr>
+                <td class="prop-col">cv_host</td>
+                <td class="type-col">string</td>
+                <td>Computer Vision API（YOLO/OCR）の接続先（IPアドレスまたはホスト名）</td>
+            </tr>
+            <tr>
+                <td class="prop-col">cv_port</td>
+                <td class="type-col">string</td>
+                <td>Computer Vision APIのポート番号。未指定時はデフォルトで "8843" を使用</td>
             </tr>
         </tbody>
     </table>
 
     <h3>6.9. アプリケーション設定 JSONフォーマット例</h3>
 <pre><code>{
-  "ai_endpoint": "127.0.0.1",
-  "yolo_port": "8843",
-  "llm_port": "8844"
+  "ai_mode": "local",
+  "llm_host": "127.0.0.1",
+  "llm_port": "8844",
+  "cv_host": "192.168.1.10",
+  "cv_port": "8843"
 }</code></pre>
 
 </body>
