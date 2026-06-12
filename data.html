@@ -41,6 +41,7 @@
     <p>解析モード（録画）中、各認識エンジンおよびフックモジュールが出力するデータ構造です（統合後に破棄）。</p>
 
     <h4>6.2.1. UI認識データ（YOLO Engine）</h4>
+    <p style="margin-top: -5px; margin-bottom: 10px; font-size: 8.5pt; color: #475569;"><strong>保存先階層:</strong> <code>ai-macro-system/macros/wf_{workflow_ID}/temp/evt_{event_id}_yolo.json</code></p>
     <table class="data-table">
         <thead>
             <tr>
@@ -74,6 +75,7 @@
     </table>
 
     <h4>6.2.2. テキスト認識データ（OCR Engine）</h4>
+    <p style="margin-top: -5px; margin-bottom: 10px; font-size: 8.5pt; color: #475569;"><strong>保存先階層:</strong> <code>ai-macro-system/macros/wf_{workflow_ID}/temp/evt_{event_id}_ocr.json</code></p>
     <table class="data-table">
         <thead>
             <tr>
@@ -107,6 +109,7 @@
     </table>
 
     <h4>6.2.3. 入力操作データ（Python OS Hook）</h4>
+    <p style="margin-top: -5px; margin-bottom: 10px; font-size: 8.5pt; color: #475569;"><strong>保存先階層:</strong> <code>ai-macro-system/macros/wf_{workflow_ID}/temp/input_logs.json</code></p>
     <table class="data-table">
         <thead>
             <tr>
@@ -192,6 +195,7 @@
 
     <h3>6.4. 統合データ構造定義</h3>
     <p>自律機能やAI生成コアが「コンテキスト理解」を確保するため、一時データをウィンドウ基準の階層型ツリー（DOMライク）に統合したデータモデルです。</p>
+    <p style="margin-top: -5px; margin-bottom: 10px; font-size: 8.5pt; color: #475569;"><strong>保存先階層:</strong> <code>ai-macro-system/macros/wf_{workflow_ID}/integrated.json</code></p>
     <table class="data-table">
         <thead>
             <tr>
@@ -346,6 +350,7 @@
 
     <h3>6.6. ワークフローデータ構造定義</h3>
     <p>統合ログから抽出・生成され、実行エンジンへと引き渡されるマクロシナリオの構造定義です。</p>
+    <p style="margin-top: -5px; margin-bottom: 10px; font-size: 8.5pt; color: #475569;"><strong>保存先階層:</strong> <code>ai-macro-system/macros/wf_{workflow_ID}/workflow.json</code></p>
     <table class="data-table">
         <thead>
             <tr>
@@ -461,6 +466,7 @@
 
     <h3>6.8. アプリケーション設定データ（config.json）</h3>
     <p>ユーザーが画面上の設定エリアから変更した接続先エンドポイントなどの情報を管理・永続化するためのデータ構造です。本ファイルはアプリケーションのルートディレクトリに配置されます。</p>
+    <p style="margin-top: -5px; margin-bottom: 10px; font-size: 8.5pt; color: #475569;"><strong>保存先階層:</strong> <code>ai-macro-system/config.json</code></p>
     <table class="data-table">
         <thead>
             <tr>
