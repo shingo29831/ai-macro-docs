@@ -22,8 +22,7 @@
     ├── integrated.json   // 統合データ（1マクロにつき1つ）
     ├── workflow.json     // ワークフローデータ（1マクロにつき1つ）
     ├── images/           // 画像格納用ディレクトリ
-    │   ├── evt_001_pre.png   // 操作直前の全体スクリーンショット
-    │   ├── evt_001_post.png  // 操作直後の全体スクリーンショット
+    │   ├── evt_001_pre.png   // 操作直前の全体スクリーンショット（※マウスクリックおよびキー操作の両方で生成）
     │   ├── evt_001_crop.png  // 操作対象UI要素のクロップ画像
     │   ├── evt_002_pre.png
     │   └── ...
@@ -33,8 +32,12 @@
         └── evt_001_ocr.json  // イベントごとのOCR認識生データ
 </code></pre>
     <p class="highlight-box">
-        <strong>※生データのライフサイクルについて:</strong><br>
-        各モジュールが取得する生データ（YOLO、OCR、入力ログ）は、マクロの生成処理中にのみ <code>temp/</code> ディレクトリ内へ一時的に保存されます。これらは <code>integrated.json</code> に必要なコンテキストとして集約された直後に、<code>temp/</code> ディレクトリごと完全に破棄され、永続化は行いません（データ冗長性の排除とディスク容量の節約）。
+        <strong>※操作直後（Post）のスクリーンショットに関する設計変更:</strong><br>
+        操作の直後に個別のスクリーンショット（post）を撮る仕様は廃止されました。これは、連続する「次の操作の直前（pre）」に撮影される画像が、実質的に前のアクションの直後状態を写していると判断できるためです。これにより、不要なキャプチャ処理のオーバーヘッドとストレージへの二重保存を防止します。
+    </p>
+    <p class="highlight-box">
+        <strong>※生データおよび画像リソースのライフサイクルについて:</strong><br>
+        各モジュールが取得する生データ（YOLO、OCR、入力ログ）は、マクロの生成処理中にのみ <code>temp/</code> ディレクトリ内へ一時的に保存され、生成完了後に自動破棄されます。また、<code>images/</code> 内に保存されるスクリーンショットは、マウスクリック時だけでなく<strong>キーボード操作時（文字入力等）にも撮影がトリガー</strong>されます。ただし、連続したテキスト入力のように「画面の変化率が著しく低い操作」が続いた場合、ストレージ容量の圧迫やデータの冗長化を防ぐため、前回のスクリーンショットとの差分解析を行い、変化率が閾値未満のときは該当する低い画像を自動的に削除・間引きする最適化が実行されます。
     </p>
 
     <h3>6.2. 生データ構造定義（一時データ）</h3>
@@ -127,7 +130,7 @@
             <tr>
                 <td class="prop-col">inputLog.type</td>
                 <td class="type-col">string</td>
-                <td>入力操作の種類（click_down, key_down など）</td>
+                <td>入力操作の種類（click_down, key_down, mouse_scroll など）</td>
             </tr>
             <tr>
                 <td class="prop-col">inputLog.content</td>
@@ -152,46 +155,10 @@
             <tr>
                 <td class="prop-col">inputLog.cursorCoordinates</td>
                 <td class="type-col">object</td>
-                <td>操作が実行された瞬間のマウスカーソルの絶対座標 {x, y}</td>
+                <td>操作が実行された瞬間のマウスカーソルの絶対座標 {x, y}（※キー操作時はNoneを許容）</td>
             </tr>
         </tbody>
     </table>
-
-    <h3>6.3. 生データ JSONフォーマット例</h3>
-    <p>統合前に各検出モジュールが一時的に保持するデータのJSON表現です。</p>
-
-    <h4>6.3.1. UI認識データ例（YOLO Engine）</h4>
-<pre><code>{
-  "uiAnalysis": {
-    "timestamp": 1717654800100,
-    "boundingBox": { "x": 1220, "y": 280, "width": 60, "height": 40 },
-    "type": "button",
-    "confidence": 0.95
-  }
-}</code></pre>
-
-    <h4>6.3.2. テキスト認識データ例（OCR Engine）</h4>
-<pre><code>{
-  "textAnalysis": {
-    "timestamp": 1717654800105,
-    "boundingBox": { "x": 1225, "y": 285, "width": 50, "height": 30 },
-    "content": "保存する",
-    "confidence": 0.98
-  }
-}</code></pre>
-
-    <h4>6.3.3. 入力操作データ例（Python OS Hook）</h4>
-<pre><code>{
-  "inputLog": {
-    "timestamp": 1717654800123,
-    "type": "click_down",
-    "content": "left_click",
-    "windowName": "社内システム - Google Chrome",
-    "windowSize": { "width": 1920, "height": 1080 },
-    "windowCoordinates": { "x": 0, "y": 0 },
-    "cursorCoordinates": { "x": 1250, "y": 300 }
-  }
-}</code></pre>
 
     <h3>6.4. 統合データ構造定義</h3>
     <p>自律機能やAI生成コアが「コンテキスト理解」を確保するため、一時データをウィンドウ基準の階層型ツリー（DOMライク）に統合したデータモデルです。</p>
