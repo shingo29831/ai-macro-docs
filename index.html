@@ -21,18 +21,22 @@
         <strong style="color: #0369a1;">※本プロジェクトは学校の授業内における研究開発として進行しています。</strong>
     </p>
 
-    <h3>プロジェクトの段階的目標</h3>
+    <h3>プロジェクトの段階的目標と将来の展望 (Future Work)</h3>
     <ul>
         <li><strong>【Phase 1: 最低限の目標 (MVP)】</strong> UI要素の認識とアクションの学習を行い、目標とする基本ワークフローをローカル環境で止まらずに自動実行できる状態にすること。</li>
         <li><strong>【Phase 2: 最終目標 (実用レベル)】</strong> 画面の軽微なズレやUI変更に対してAIが動的にコードを再生成し、エラーを自律修復して処理を継続できる堅牢なシステムとして完成させること。</li>
     </ul>
 
-    <div class="highlight-box">
-        <h4>【開発・設計原則】</h4>
-        <ul>
-            <li><strong>アーキテクチャ:</strong> UIとロジックの完全分離（疎結合）。関心事ごとにファイルを分割。</li>
-            <li><strong>堅牢性:</strong> エラー握り潰し厳禁。外部通信（AI API等）は失敗前提でタイムアウト/リトライを標準実装。</li>
-            <li><strong>セキュリティ:</strong> 機密情報のハードコード厳禁。外部入力の検証・サニタイズの徹底。</li>
+    <div class="highlight-box" style="border-left-color: #8b5cf6; background-color: #f5f3ff; margin-top: 15px;">
+        <h4 style="color: #6d28d9;">【Phase 3: 発展・最適化（時間ができた際の取り組み）】</h4>
+        <p style="font-size: 8.5pt; color: #4c1d95; margin-bottom: 8px;">Phase 2の実装完了後、システムの実用性・応答速度を極限まで高めるためのアーキテクチャ最適化フェーズです。</p>
+        <ul style="color: #4c1d95;">
+            <li><strong>1. 高品質な合成データ生成パイプラインの構築 (Quality Gate):</strong><br>
+                ファインチューニング用の教師データを自動生成するため、大型LLM（クラウドAPI等）を用いて <code>integrated.json</code> からマクロコードを生成。さらに、別の独立したモデル（Judge）を「品質ゲート」として配置し、基準を満たさない低品質な生成データを自動破棄するデータ基盤を構築する。</li>
+            <li><strong>2. 小型ローカルLLMの蒸留とタスク特化 (LoRA Fine-tuning):</strong><br>
+                汎用的な大型モデルに依存せず、「マクロの生成」や「自己修復時のUI判定」という狭く限定されたタスクに対して、2B〜8Bクラスの小型モデルをLoRA等でファインチューニングする。これにより、限られたVRAM環境下でもフロンティアモデルと同等以上の精度を引き出す。</li>
+            <li><strong>3. 推論エンジンの高速化とレイテンシの安定化 (vLLM / Prefix Caching):</strong><br>
+                最適化された小型モデルを、vLLMなどの高速推論サーバー上で稼働させる。さらに <code>prefix caching</code> 等の技術を活用し、毎ターン発生するAIへの問い合わせレイテンシ（p95）のブレをなくし、即時ポーリングによる最速実行を完全に機能させる。</li>
         </ul>
     </div>
 
