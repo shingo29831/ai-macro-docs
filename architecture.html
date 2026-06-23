@@ -12,7 +12,7 @@
     <a href="index.html" class="nav-back">← トップページ（目次）に戻る</a>
 
     <h2>8. ディレクトリ構造と開発要件 (ADR)</h2>
-    <p>本系统的UIとロジックを完全に疎結合化し、各モジュールの関心事を分離するための「ソースコード構成」と、実行時に生成される「データ構成」を定義します。</p>
+    <p>本システムのUIとロジックを完全に疎結合化し、各モジュールの関心事を分離するための「ソースコード構成」と、実行時に生成される「データ構成」を定義します。</p>
 
     <h3>8.1. ソースコードのディレクトリ構成 (src/)</h3>
     <p>アプリケーション本体の設計構造です。UI層、ビジネスロジック層(Core)、外部エンジン層を明確に分離しています。</p>
@@ -39,6 +39,91 @@
 ├── .env.example                 // 環境変数のテンプレート
 ├── requirements.txt             // 依存パッケージ
 └── README.md                    // 実例込みのドキュメント</code></pre>
+
+    <div class="highlight-box">
+        <h4>📁 各ディレクトリの役割と公開インターフェース (疎結合の橋渡し役)</h4>
+        <p>各モジュール間の結合を疎にし、関心事を分離するために外部から呼び出される「橋渡し役」となる関数（実装済・実装予定）を定義します。</p>
+        
+        <ul>
+            <li><strong>ui/ (UI層)</strong>: UIの描画とイベント受付を担当します。ビジネスロジックは持たず、全てViewModelへ委譲します。
+                <ul>
+                    <li><strong>viewmodels/main_viewmodel.py</strong>
+                        <ul>
+                            <li><code>load_macros()</code>: 保存済みマクロ一覧の再読み込み。</li>
+                            <li><code>start_recording()</code>: マクロ記録の開始要求。</li>
+                            <li><code>stop_recording()</code>: 記録の停止とバックグラウンド生成処理のキック。</li>
+                            <li><code>trigger_emergency_stop()</code>: 実行中マクロの強制停止要求。</li>
+                            <li><code>select_macro(macro_name: str)</code>: マクロの選択状態の更新。</li>
+                            <li><code>run_selected_macro()</code>: 選択中マクロの実行要求。</li>
+                            <li><code>delete_macro(macro_name: str)</code>: 選択中マクロの削除要求。</li>
+                        </ul>
+                    </li>
+                    <li><strong>viewmodels/settings_viewmodel.py</strong> (実装予定含む)
+                        <ul>
+                            <li><code>load_settings()</code>: 画面表示用の設定読み込み要求。</li>
+                            <li><code>save_settings(settings_data: dict)</code>: 設定の保存要求。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li><strong>core/ (ビジネスロジック層)</strong>: アプリケーションの中核機能群です。
+                <ul>
+                    <li><strong>recorder/os_hook.py</strong>
+                        <ul>
+                            <li><code>start_recording()</code>: OSレベルのフック開始と入力監視。</li>
+                            <li><code>stop_recording()</code>: フックの停止と入力ログの保存。</li>
+                        </ul>
+                    </li>
+                    <li><strong>recorder/screen_capturer.py</strong>
+                        <ul>
+                            <li><code>get_macros_root()</code>: マクロ保存先のルートディレクトリパスの提供。</li>
+                        </ul>
+                    </li>
+                    <li><strong>generator/log_integrator.py</strong>
+                        <ul>
+                            <li><code>generate_macro_workflow(workflow_id: str, config: AppConfig)</code>: ログと解析結果を統合した実行可能マクロシナリオの生成。</li>
+                        </ul>
+                    </li>
+                    <li><strong>executor/runner.py</strong>
+                        <ul>
+                            <li><code>run_workflow(workflow_id: str, config: AppConfig)</code>: 対象マクロの即時ポーリングによる自律実行。</li>
+                            <li><code>stop_workflow()</code>: 実行中マクロへの緊急停止シグナル送信。</li>
+                        </ul>
+                    </li>
+                    <li><strong>healer/recovery_manager.py</strong> (実装予定)
+                        <ul>
+                            <li><code>attempt_recovery(workflow_id: str, error_context: dict)</code>: 実行エラーやUI変化検知時の動的修復および再開処理。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li><strong>engines/ (外部認識エンジン層)</strong>: AIモデルやAPIサーバープロセスの管理を行います。
+                <ul>
+                    <li><strong>manager.py</strong>
+                        <ul>
+                            <li><code>start_servers()</code>: 設定に基づく必要なローカル推論サーバープロセスの起動。</li>
+                            <li><code>stop_servers()</code>: 全てのサーバープロセスの安全なクリーンアップと終了。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li><strong>utils/ (共通ユーティリティ層)</strong>
+                <ul>
+                    <li><strong>config_manager.py</strong>
+                        <ul>
+                            <li><code>load_config()</code>: 設定ファイルの安全な読み込みとモデル変換。</li>
+                            <li><code>save_config(config_data: dict)</code>: (実装予定) 変更された設定ファイルの永続化。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li><strong>models/ (スキーマ定義層)</strong>
+                <ul>
+                    <li>データ構造（<code>AppConfig</code>や<code>MacroSummary</code>等）を提供し、層を跨ぐ際のデータの型を担保します。外部から呼び出される振る舞い（メソッド）は持ちません。</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
 
     <h3>8.2. 実行時データと生成マクロのディレクトリ構成 (macros/)</h3>
     <p>ユーザーがマクロを記録・生成する際に動的に作られるデータ領域です。特に一時データ（temp）のライフサイクル管理を厳格に行います。</p>
