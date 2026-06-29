@@ -162,6 +162,10 @@
 
     <h3>6.4. 統合データ構造定義</h3>
     <p>自律機能やAI生成コアが「コンテキスト理解」を確保するため、一時データをウィンドウ基準の階層型ツリー（DOMライク）に統合したデータモデルです。</p>
+    <p class="highlight-box">
+        <strong>※階層ツリー構築と推論誤差の吸収 (IoA判定):</strong><br>
+        YOLOやOCRが検出した要素の親子関係（包含関係）を構築する際、単なる座標の完全内包ではなく、<strong>交差面積率（IoA: Intersection over Area）</strong>を計算します。AIの推論による数ピクセルのはみ出しを許容するため、子要素の面積のうち閾値（例: 70%）以上が親要素と重なっていれば内包されていると判定し、堅牢なXMLライクのUIツリーを構築します。
+    </p>
     <p style="margin-top: -5px; margin-bottom: 10px; font-size: 8.5pt; color: #475569;"><strong>保存先階層:</strong> <code>ai-macro-system/macros/wf_{workflow_ID}/integrated.json</code></p>
     <table class="data-table">
         <thead>
@@ -200,12 +204,12 @@
             <tr>
                 <td class="prop-col">window.UIs</td>
                 <td class="type-col">array</td>
-                <td>対象ウィンドウ内で認識され、操作に関与したUI要素の配列</td>
+                <td>対象ウィンドウ内で認識され、操作に関与したUI要素の配列（ルート要素）</td>
             </tr>
             <tr>
                 <td class="prop-col">window.UIs[].type</td>
                 <td class="type-col">string</td>
-                <td>UIの種類（button, input 等）</td>
+                <td>UIの種類（form, container, button, input 等）</td>
             </tr>
             <tr>
                 <td class="prop-col">window.UIs[].relativeBoundingBox</td>
@@ -220,7 +224,7 @@
             <tr>
                 <td class="prop-col">window.UIs[].action</td>
                 <td class="type-col">object</td>
-                <td>当該UIに対して行われた入力操作の詳細</td>
+                <td>当該UIに対して行われた入力操作の詳細（非インタラクティブ要素の場合はnull）</td>
             </tr>
             <tr>
                 <td class="prop-col">window.UIs[].action.inputType</td>
@@ -245,7 +249,7 @@
             <tr>
                 <td class="prop-col">window.UIs[].context</td>
                 <td class="type-col">array</td>
-                <td>UI要素を補足する周辺情報（テキストやアイコン等）の配列</td>
+                <td>UI要素を直接補足する周辺情報（テキストやアイコン等）の配列</td>
             </tr>
             <tr>
                 <td class="prop-col">window.UIs[].context[].type</td>
@@ -272,6 +276,11 @@
                 <td class="type-col">number</td>
                 <td>親要素（対象UI）との関連度合い（距離や意味合いから算出）</td>
             </tr>
+            <tr>
+                <td class="prop-col">window.UIs[].children</td>
+                <td class="type-col">array</td>
+                <td>子UI要素の配列（交差面積率による内包判定から再帰的に構築されるツリー構造）</td>
+            </tr>
         </tbody>
     </table>
 
@@ -285,29 +294,32 @@
     "coordinates": { "x": 0, "y": 0 },
     "UIs": [
       {
-        "type": "button",
-        "relativeBoundingBox": { "x": 1220, "y": 280, "width": 60, "height": 40 },
-        "confidence": 0.95,
-        "action": {
-          "inputType": "click_down",
-          "inputValue": "left_click",
-          "cursorRelativeCoordinates": { "x": 1250, "y": 300 },
-          "diffRatio": 0.12
-        },
-        "context": [
+        "type": "form",
+        "relativeBoundingBox": { "x": 1000, "y": 200, "width": 400, "height": 300 },
+        "confidence": 0.90,
+        "action": null,
+        "context": [],
+        "children": [
           {
-            "type": "text",
-            "content": "保存する",
-            "relativeBoundingBox": { "x": 1225, "y": 285, "width": 50, "height": 30 },
-            "confidence": 0.98,
-            "parentRelevance": 0.99
-          },
-          {
-            "type": "icon",
-            "content": "save_icon",
-            "relativeBoundingBox": { "x": 1210, "y": 285, "width": 10, "height": 10 },
-            "confidence": 0.90,
-            "parentRelevance": 0.85
+            "type": "button",
+            "relativeBoundingBox": { "x": 1220, "y": 280, "width": 60, "height": 40 },
+            "confidence": 0.95,
+            "action": {
+              "inputType": "click_down",
+              "inputValue": "left_click",
+              "cursorRelativeCoordinates": { "x": 1250, "y": 300 },
+              "diffRatio": 0.12
+            },
+            "context": [
+              {
+                "type": "text",
+                "content": "保存する",
+                "relativeBoundingBox": { "x": 1225, "y": 285, "width": 50, "height": 30 },
+                "confidence": 0.98,
+                "parentRelevance": 0.99
+              }
+            ],
+            "children": []
           }
         ]
       }

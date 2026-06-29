@@ -26,7 +26,7 @@
             <div class="uf-phase generate">Phase 2<br>解析・生成</div>
             <div class="uf-content">
                 <div class="uf-title">マクロコードのAI生成 (Intelligence)</div>
-                <div class="uf-desc">YOLO/OCRにより画面が構造化され、作業単位のビジュアルワークフローが提示されます。ユーザーが確認後、「生成」を実行するとローカル実行用コードが出力されます。</div>
+                <div class="uf-desc">YOLO/OCRにより画面が構造化され、交差面積率（IoA）に基づく推論誤差を吸収した階層ツリーとして統合されます。ユーザーが確認後、「生成」を実行するとローカル実行用コードが出力されます。</div>
             </div>
         </div>
         <div class="uf-arrow">▼</div>
@@ -63,7 +63,7 @@
             <div class="arch-arrow">➔</div>
             <div class="arch-box">
                 C. 生成コア<br>
-                <div class="arch-desc" style="text-align:left; margin-top:4px;">・Log Integrator<br>・Code Generator</div>
+                <div class="arch-desc" style="text-align:left; margin-top:4px;">・Log Integrator<br>・階層ツリー構築 (IoA判定)<br>・Code Generator</div>
             </div>
             <div class="arch-arrow">➔</div>
             <div class="arch-box">
