@@ -569,6 +569,64 @@
 
     <h3>6.10. 実行可能マクロデータ（Executable Macro）</h3>
     <p>実行エンジンが直接解釈可能な、メソッド名と解決済み引数を持つマクロ用JSONです。LLMが <code>workflow.json</code> の意図と <code>integrated.json</code> の座標データを組み合わせて生成した状態を表現し、実行時にそのまま使用されます。</p>
+    <p style="margin-top: -5px; margin-bottom: 10px; font-size: 8.5pt; color: #475569;"><strong>保存先階層:</strong> <code>ai-macro-system/macros/wf_{workflow_ID}/executable_macro.json</code> (またはLLMからの直接返却)</p>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th class="prop-col">プロパティ (階層)</th>
+                <th class="type-col">型</th>
+                <th>説明・格納される値</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="prop-col">macro_id</td>
+                <td class="type-col">string</td>
+                <td>マクロを一意に識別する識別子ID</td>
+            </tr>
+            <tr>
+                <td class="prop-col">target_application</td>
+                <td class="type-col">string</td>
+                <td>操作対象となる主要なアプリケーション名、またはウィンドウタイトル名</td>
+            </tr>
+            <tr>
+                <td class="prop-col">commands</td>
+                <td class="type-col">array</td>
+                <td>実行エンジンがシーケンシャルに呼び出す実行コマンドオブジェクトの配列</td>
+            </tr>
+            <tr>
+                <td class="prop-col">commands[].method</td>
+                <td class="type-col">string</td>
+                <td>呼び出す操作メソッド名。リテラル限定（"wait", "click", "type_text", "press_key"）</td>
+            </tr>
+            <tr>
+                <td class="prop-col">commands[].args</td>
+                <td class="type-col">object</td>
+                <td>メソッドごとに定義される、実行時解決済みの引数オブジェクト（多態性データ構造）</td>
+            </tr>
+            <tr>
+                <td class="prop-col">...args (method: "wait")</td>
+                <td class="type-col">object</td>
+                <td>待機コマンド用のペイロード。内包プロパティ：<br>・<code>duration</code> (number): 次のコマンド実行まで待機する秒数</td>
+            </tr>
+            <tr>
+                <td class="prop-col">...args (method: "click")</td>
+                <td class="type-col">object</td>
+                <td>マウスボタン入力用のペイロード。内包プロパティ：<br>・<code>x</code> (number): デスクトップ上の絶対X座標<br>・<code>y</code> (number): デスクトップ上の絶対Y座標<br>・<code>button</code> (string): 使用ボタン（"left", "right" など）<br>・<code>clicks</code> (number): クリック回数（1=シングル、2=ダブル）</td>
+            </tr>
+            <tr>
+                <td class="prop-col">...args (method: "type_text")</td>
+                <td class="type-col">object</td>
+                <td>キーボード文字列入力用のペイロード。内包プロパティ：<br>・<code>text</code> (string): フォーム等に直接流し込む入力対象の文字列内容</td>
+            </tr>
+            <tr>
+                <td class="prop-col">...args (method: "press_key")</td>
+                <td class="type-col">object</td>
+                <td>単発の特殊キー制御用のペイロード。内包プロパティ：<br>・<code>key</code> (string): 入力するキー名（"tab", "enter", "esc" など）</td>
+            </tr>
+        </tbody>
+    </table>
 
     <h4>📁 実行可能マクロのJSONフォーマット例（事務作業シナリオ）</h4>
     <p>Webブラウザ上の業務システム（顧客管理システムや経費精算など）で、「新規登録ボタンを押し、フォームに社名とメールアドレスを入力して保存する」といった一般的なデータ入力作業を想定した例です。</p>
