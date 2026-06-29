@@ -315,118 +315,179 @@
   }
 }</code></pre>
 
-    <h3>6.6. ワークフローデータ構造定義</h3>
-    <p>統合ログから抽出・生成され、実行エンジンへと引き渡されるマクロシナリオの構造定義です。</p>
+    <h3>6.6. ワークフローデータと変数データの構造定義</h3>
+    <p>統合ログからAIによって抽出・生成され、実行エンジンへと引き渡されるマクロシナリオの構造です。本システムでは、**ロジック（手順）とデータ（具体値）を完全に分離（疎結合）**するため、手順を定義する <code>workflow.json</code> と、具体的な値を保持する <code>variables.json</code> の2つのファイルに分割して保存します。</p>
+    
+    <div class="highlight-box">
+        <h4>🧠 構造設計の意図とAI推論精度の向上戦略</h4>
+        <ul>
+            <li><strong>完全な英語化 (Anti-Hallucination):</strong> ローカルAI（LLM）が文脈を正確に解釈し、構文エラーや幻覚（ハルシネーション）を防ぐため、キー名や列挙型、意図を説明するテキスト（description）は全て英語で記述します。</li>
+            <li><strong>ファイルの分離 (Separation of Concerns):</strong> 変数を <code>variables.json</code> に切り出すことで、AIは「何をすべきか（ロジック）」の推論に集中できます。また、将来的にユーザーがマクロの手順を壊すことなく、GUIから検索ワードやURLだけを安全に編集・再利用（DRY原則）できるようになります。</li>
+            <li><strong>意図と状態の明示 (Semantic Context):</strong> 単なる座標の羅列ではなく、<code>intent</code>（目的）と <code>context</code>（前提状態）を持たせることで、実行エンジンが「今どの画面が開いているべきか」を事前検証し、エラー時には修復エンジン（Healer）が自己修復しやすくなる堅牢な構造としています。</li>
+        </ul>
+    </div>
+
+    <h4>6.6.1. ワークフロー変数定義 (variables.json)</h4>
+    <p style="margin-top: -5px; margin-bottom: 10px; font-size: 8.5pt; color: #475569;"><strong>保存先階層:</strong> <code>ai-macro-system/macros/wf_{workflow_ID}/variables.json</code></p>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th class="prop-col">プロパティ</th>
+                <th class="type-col">型</th>
+                <th>説明・構造の意図</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="prop-col">(key_name)</td>
+                <td class="type-col">string/number</td>
+                <td>
+                    検索キーワード、対象ドメイン、クリック対象の文字列など、実行環境や目的に依存する具体的なデータ。<br>
+                    <strong>意図:</strong> ここに具体値を集約させることで、同じ操作手順のマクロであっても、このファイルの値を差し替えるだけで別のタスク（例：「A校の検索」から「B校の検索」）へ汎用的に転用可能にします。
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h4>6.6.2. ワークフロー実行シナリオ定義 (workflow.json)</h4>
     <p style="margin-top: -5px; margin-bottom: 10px; font-size: 8.5pt; color: #475569;"><strong>保存先階層:</strong> <code>ai-macro-system/macros/wf_{workflow_ID}/workflow.json</code></p>
     <table class="data-table">
         <thead>
             <tr>
                 <th class="prop-col">プロパティ (階層)</th>
                 <th class="type-col">型</th>
-                <th>説明・格納される値</th>
+                <th>説明・構造の意図</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td class="prop-col">workflow_ID</td>
+                <td class="prop-col">version</td>
                 <td class="type-col">string</td>
-                <td>ワークフロー（マクロ）を一意に識別するID</td>
+                <td>スキーマのバージョン（例: "1.1"）。パーサーの後方互換性を担保するため。</td>
             </tr>
             <tr>
-                <td class="prop-col">target_ID</td>
-                <td class="type-col">string</td>
-                <td>操作対象となる主要なアプリケーションの識別子ID</td>
+                <td class="prop-col">metadata</td>
+                <td class="type-col">object</td>
+                <td>OS、画面解像度、所要時間などの実行環境メタデータ。マクロ共有時に環境差異を吸収するヒントとして使用。</td>
             </tr>
             <tr>
-                <td class="prop-col">events</td>
+                <td class="prop-col">steps</td>
                 <td class="type-col">array</td>
-                <td>ワークフローを構成する一連の操作イベントの配列</td>
+                <td>物理的な操作（マウス移動等）を意味的な作業単位に要約したステップの配列。</td>
             </tr>
             <tr>
-                <td class="prop-col">events[].event_id</td>
+                <td class="prop-col">steps[].intent</td>
                 <td class="type-col">string</td>
-                <td>各操作イベントの一意なID。画像ファイルとの紐付けにも使用。</td>
+                <td>
+                    標準化されたアクション分類（LAUNCH_APPLICATION, CLICK_WEB_LINK など）。<br>
+                    <strong>意図:</strong> ローカルAIや実行エンジンが「このステップで最終的に何を達成したいのか」を迷わず決定するための最重要フラグ。
+                </td>
             </tr>
             <tr>
-                <td class="prop-col">events[].timestamp</td>
-                <td class="type-col">number</td>
-                <td>イベントが検出または生成されたUnixタイムスタンプ</td>
+                <td class="prop-col">steps[].description</td>
+                <td class="type-col">string</td>
+                <td>ステップの目的を説明する自然言語の文章（英語）。ログ確認時や、LLMがコンテキストを再評価する際に利用。</td>
             </tr>
             <tr>
-                <td class="prop-col">events[].action</td>
+                <td class="prop-col">steps[].context</td>
                 <td class="type-col">object</td>
-                <td>実行された具体的なユーザー操作内容の詳細</td>
+                <td>
+                    実行前に満たすべき前提条件（アクティブなウィンドウ名やURLパターンなど）。<br>
+                    <strong>意図:</strong> 予期せぬ画面でクリックが暴発するのを防ぐためのアサーション（検証）として機能し、修復エンジン（Healer）が「どの状態に戻すべきか」の基準になります。
+                </td>
             </tr>
             <tr>
-                <td class="prop-col">events[].action.type</td>
-                <td class="type-col">string</td>
-                <td>入力操作の種類（click, key_down, text_input など）</td>
+                <td class="prop-col">steps[].action</td>
+                <td class="type-col">object</td>
+                <td>
+                    システムに対する具体的な操作定義。値には <code>${変数名}</code> の形式で <code>variables.json</code> の値を参照します。<br>
+                    <strong>意図:</strong> 実行エンジンが OS Hook や UIAutomation に渡す直接的なコマンド群。
+                </td>
             </tr>
             <tr>
-                <td class="prop-col">events[].action.button</td>
-                <td class="type-col">string</td>
-                <td>使用されたマウスボタン（left, right など、キー入力時は省略可）</td>
+                <td class="prop-col">steps[].action.target_element</td>
+                <td class="type-col">object</td>
+                <td>
+                    対象UIをセマンティックに特定する条件（text_contains, role など）。<br>
+                    <strong>意図:</strong> 座標（x, y）での直接クリックは解像度変更に弱いため、「テキスト内容」や「役割」を主軸にしてUI要素を検索させることで、マクロの堅牢性を大幅に高めます。
+                </td>
             </tr>
             <tr>
-                <td class="prop-col">events[].action.modifiers</td>
+                <td class="prop-col">steps[].fallback_raw_events</td>
                 <td class="type-col">array</td>
-                <td>同時に押下された修飾キー（ctrl, shift, alt など）の配列</td>
-            </tr>
-            <tr>
-                <td class="prop-col">events[].context</td>
-                <td class="type-col">object</td>
-                <td>操作実行時における対象要素および画面の状態コンテキスト</td>
-            </tr>
-            <tr>
-                <td class="prop-col">events[].context.interacted_element</td>
-                <td class="type-col">object</td>
-                <td>ユーザーが実際に操作を加えたUI要素の静的・意味的情報</td>
-            </tr>
-            <tr>
-                <td class="prop-col">events[].context.interacted_element.element_id</td>
-                <td class="type-col">string</td>
-                <td>操作対象となったUI要素を特定する内部ID</td>
-            </tr>
-            <tr>
-                <td class="prop-col">events[].context.interacted_element.ui_type</td>
-                <td class="type-col">string</td>
-                <td>要素のオブジェクトタイプ（button, input, checkbox 等）</td>
-            </tr>
-            <tr>
-                <td class="prop-col">events[].context.interacted_element.semantic_role</td>
-                <td class="type-col">string</td>
-                <td>要素の持つ意味的役割（submit, cancel, search_box 等）</td>
-            </tr>
-            <tr>
-                <td class="prop-col">events[].context.interacted_element.location_context</td>
-                <td class="type-col">string</td>
-                <td>配置上の視覚的コンテキスト（bottom_right, top_nav 等）</td>
+                <td>
+                    この要約ステップの根拠となった、統合ログ(integrated.json)の生イベントIDのリスト。<br>
+                    <strong>意図:</strong> AIの推論エラー時や、マクロが期待通り動かない場合に、どの元のユーザー操作からこれが生成されたかをトレース（追跡）できるようにするため。
+                </td>
             </tr>
         </tbody>
     </table>
 
-    <h3>6.7. ワークフローデータ JSONフォーマット例</h3>
-    <p>構造定義に基づき、生成コアから出力されるワークフローデータのJSON表現です。</p>
+    <h3>6.7. データ JSONフォーマット例</h3>
+    <p>AIの推論精度を高めるため、英語化とファイルの分離が行われた最終的な生成物の例です。</p>
+
+    <h4>📁 variables.json</h4>
 <pre><code>{
+  "search_keyword": "nkc",
+  "target_school_name": "名古屋工学院専門学校",
+  "target_domain_pattern": "https://www.google.com/search?q=*"
+}</code></pre>
+
+    <h4>📁 workflow.json</h4>
+<pre><code>{
+  "version": "1.1",
   "workflow_ID": "wf_12345",
-  "target_ID": "target_app_001",
-  "events": [
+  "metadata": {
+    "os": "Windows",
+    "resolution": { "width": 1936, "height": 1048 },
+    "duration_ms": 25335
+  },
+  "steps": [
     {
-      "event_id": "evt_001",
-      "timestamp": 1717654800123,
-      "action": {
-        "type": "click",
-        "button": "left",
-        "modifiers": ["shift"]
-      },
+      "step_id": 1,
+      "intent": "LAUNCH_APPLICATION",
+      "description": "Launch the Firefox browser from the desktop.",
       "context": {
-        "interacted_element": {
-          "element_id": "btn_save",
-          "ui_type": "button",
-          "semantic_role": "submit",
-          "location_context": "bottom_right"
+        "active_window_name": "Desktop",
+        "app_name": "Firefox"
+      },
+      "action": {
+        "type": "EXECUTE_PROCESS",
+        "target": "firefox.exe"
+      },
+      "fallback_raw_events": ["evt_001", "evt_002"]
+    },
+    {
+      "step_id": 2,
+      "intent": "INPUT_TEXT_AND_SUBMIT",
+      "description": "Enter the search keyword into the active browser and press enter.",
+      "context": {
+        "active_window_name": "Mozilla Firefox"
+      },
+      "action": {
+        "type": "TYPE_TEXT",
+        "value": "${search_keyword}",
+        "press_enter": true
+      },
+      "fallback_raw_events": ["evt_003", "evt_004", "evt_005", "evt_006"]
+    },
+    {
+      "step_id": 3,
+      "intent": "CLICK_WEB_LINK",
+      "description": "Find and click the link matching the target school name in the search results.",
+      "context": {
+        "active_window_name": "Search Results",
+        "url_pattern": "${target_domain_pattern}"
+      },
+      "action": {
+        "type": "CLICK_ELEMENT",
+        "target_element": {
+          "text_contains": "${target_school_name}",
+          "role": "link",
+          "fallback_bounding_box": { "x": 1099, "y": 29, "width": 200, "height": 30 }
         }
-      }
+      },
+      "fallback_raw_events": ["evt_007", "evt_008", "evt_009", "evt_010"]
     }
   ]
 }</code></pre>
