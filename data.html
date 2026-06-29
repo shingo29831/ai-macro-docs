@@ -567,5 +567,89 @@
   "cv_port": "8843"
 }</code></pre>
 
+    <h3>6.10. 実行可能マクロデータ（Executable Macro）</h3>
+    <p>実行エンジンが直接解釈可能な、メソッド名と解決済み引数を持つマクロ用JSONです。LLMが <code>workflow.json</code> の意図と <code>integrated.json</code> の座標データを組み合わせて生成した状態を表現し、実行時にそのまま使用されます。</p>
+
+    <h4>📁 実行可能マクロのJSONフォーマット例（事務作業シナリオ）</h4>
+    <p>Webブラウザ上の業務システム（顧客管理システムや経費精算など）で、「新規登録ボタンを押し、フォームに社名とメールアドレスを入力して保存する」といった一般的なデータ入力作業を想定した例です。</p>
+<pre><code>{
+  "macro_id": "macro_002_customer_registration",
+  "target_application": "Google Chrome - 顧客管理システム",
+  "commands": [
+    {
+      "method": "wait",
+      "args": {
+        "duration": 1.0
+      }
+    },
+    {
+      "method": "click",
+      "args": {
+        "x": 1200,
+        "y": 150,
+        "button": "left",
+        "clicks": 1
+      }
+    },
+    {
+      "method": "wait",
+      "args": {
+        "duration": 0.5
+      }
+    },
+    {
+      "method": "click",
+      "args": {
+        "x": 400,
+        "y": 300,
+        "button": "left",
+        "clicks": 1
+      }
+    },
+    {
+      "method": "type_text",
+      "args": {
+        "text": "株式会社テスト"
+      }
+    },
+    {
+      "method": "press_key",
+      "args": {
+        "key": "tab"
+      }
+    },
+    {
+      "method": "type_text",
+      "args": {
+        "text": "info@example.com"
+      }
+    },
+    {
+      "method": "click",
+      "args": {
+        "x": 400,
+        "y": 600,
+        "button": "left",
+        "clicks": 1
+      }
+    }
+  ]
+}</code></pre>
+
+    <div class="highlight-box">
+        <h4>💡 事務作業を想定したシナリオの解説</h4>
+        <ol>
+            <li><strong>画面の読み込み待ち (<code>wait</code>):</strong> 1秒待機し、システムの画面が完全に表示されるのを待ちます。</li>
+            <li><strong>「新規登録」ボタンのクリック (<code>click</code>):</strong> 画面右上（例: x=1200, y=150）にあるボタンをクリックします。</li>
+            <li><strong>フォーム展開の待機 (<code>wait</code>):</strong> 入力フォームが開くのを0.5秒待ちます。</li>
+            <li><strong>「会社名」入力欄のフォーカス (<code>click</code>):</strong> 入力欄（例: x=400, y=300）をクリックしてカーソルを合わせます。</li>
+            <li><strong>会社名の入力 (<code>type_text</code>):</strong> "株式会社テスト" という文字列を直接入力します。</li>
+            <li><strong>次の入力欄へ移動 (<code>press_key</code>):</strong> <code>tab</code> キーを押下し、マウスを使わずに次の「メールアドレス」入力欄へフォーカスを移動させます。</li>
+            <li><strong>メールアドレスの入力 (<code>type_text</code>):</strong> "info@example.com" を入力します。</li>
+            <li><strong>「保存」ボタンのクリック (<code>click</code>):</strong> 画面下部（例: x=400, y=600）の保存ボタンをクリックして完了します。</li>
+        </ol>
+        <p>事務作業の場合、マウスによる座標クリック（<code>click</code>）だけでなく、入力効率の高い <code>tab</code> キーでの移動（<code>press_key</code>）や、まとまった文字列の流し込み（<code>type_text</code>）が多用されます。このデータ構造により、そうしたRPA特有の挙動も無理なく表現できます。</p>
+    </div>
+
 </body>
 </html>
