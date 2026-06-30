@@ -58,10 +58,10 @@
                             <li><code>delete_macro(macro_name: str)</code>: 選択中マクロの削除要求。</li>
                         </ul>
                     </li>
-                    <li><strong>viewmodels/settings_viewmodel.py</strong> (実装予定含む)
+                    <li><strong>viewmodels/settings_viewmodel.py</strong>
                         <ul>
-                            <li><code>load_settings()</code>: 画面表示用の設定読み込み要求。</li>
-                            <li><code>save_settings(settings_data: dict)</code>: 設定の保存要求。</li>
+                            <li><code>load_current_settings()</code>: 画面表示用の設定読み込み要求。APIキーなどの機密情報は復号してUIへ渡す。</li>
+                            <li><code>save_settings(...)</code>: UIからの入力値（AIモード、各ホスト/ポート情報、APIキー等）を受け取り、検証後に保存する。APIキー等の機密情報はSecretStrへ変換し保護する。</li>
                         </ul>
                     </li>
                 </ul>
@@ -90,9 +90,9 @@
                             <li><code>stop_workflow()</code>: 実行中マクロへの緊急停止シグナル送信。</li>
                         </ul>
                     </li>
-                    <li><strong>healer/recovery_manager.py</strong> (実装予定)
+                    <li><strong>healer/recovery_manager.py</strong>
                         <ul>
-                            <li><code>attempt_recovery(workflow_id: str, error_context: dict)</code>: 実行エラーやUI変化検知時の動的修復および再開処理。</li>
+                            <li><code>attempt_recovery(workflow_id: str, current_step_index: int)</code>: 実行エラーやUI変化検知時の動的修復および再開処理。4段階自己修復意思決定ツリーを実行し、修復結果（成功/失敗）を返す。</li>
                         </ul>
                     </li>
                 </ul>
@@ -112,7 +112,7 @@
                     <li><strong>config_manager.py</strong>
                         <ul>
                             <li><code>load_config()</code>: 設定ファイルの安全な読み込みとモデル変換。</li>
-                            <li><code>save_config(config_data: dict)</code>: (実装予定) 変更された設定ファイルの永続化。</li>
+                            <li><code>save_config(config: AppConfig)</code>: 検証済みのAppConfigモデルをJSONとしてファイルに永続化する。</li>
                         </ul>
                     </li>
                 </ul>
